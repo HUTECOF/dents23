@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <!-- Círculo de fondo gris claro -->
+  <circle cx="100" cy="100" r="95" fill="#E8F4F8"/>
+  
+  <!-- Arco verde lima (izquierda) -->
+  <path d="M 60 70 Q 50 100, 60 130" 
+        fill="none" 
+        stroke="#84CC16" 
+        stroke-width="12" 
+        stroke-linecap="round"/>
+  
+  <!-- Arco cyan (derecha) -->
+  <path d="M 140 70 Q 150 100, 140 130" 
+        fill="none" 
+        stroke="#22D3EE" 
+        stroke-width="12" 
+        stroke-linecap="round"/>
+  
+  <!-- Diente blanco -->
+  <g>
+    <!-- Parte superior del diente -->
+    <ellipse cx="100" cy="85" rx="25" ry="30" fill="white" stroke="#D0D0D0" stroke-width="1"/>
+    
+    <!-- Parte inferior del diente (raíces) -->
+    <rect x="88" y="100" width="10" height="25" rx="2" fill="white" stroke="#D0D0D0" stroke-width="1"/>
+    <rect x="102" y="100" width="10" height="25" rx="2" fill="white" stroke="#D0D0D0" stroke-width="1"/>
+    
+    <!-- Línea divisoria central -->
+    <line x1="100" y1="70" x2="100" y2="120" stroke="#E0E0E0" stroke-width="1.5"/>
+    
+    <!-- Brillo en el diente -->
+    <ellipse cx="92" cy="80" rx="6" ry="10" fill="white" opacity="0.7"/>
+  </g>
+</svg>

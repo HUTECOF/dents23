@@ -1,0 +1,185 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* Tema claro con fondo blanco para CRM médico */
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.15 0.02 200);
+  --card: oklch(0.99 0.003 180);
+  --card-foreground: oklch(0.15 0.02 200);
+  --popover: oklch(0.99 0.003 180);
+  --popover-foreground: oklch(0.15 0.02 200);
+  --primary: oklch(0.65 0.15 220);
+  --primary-foreground: oklch(0.06 0.005 240);
+  --secondary: oklch(0.94 0.01 180);
+  --secondary-foreground: oklch(0.25 0.02 200);
+  --muted: oklch(0.96 0.005 180);
+  --muted-foreground: oklch(0.45 0.02 200);
+  --accent: oklch(0.6 0.12 175);
+  --accent-foreground: oklch(0.06 0.005 240);
+  --destructive: oklch(0.6 0.2 15);
+  --destructive-foreground: oklch(0.95 0.005 240);
+  --border: oklch(0.9 0.01 180);
+  --input: oklch(0.97 0.005 180);
+  --ring: oklch(0.65 0.15 220);
+  --success: oklch(0.6 0.15 150);
+  --success-foreground: oklch(0.06 0.005 240);
+  --warning: oklch(0.7 0.15 60);
+  --warning-foreground: oklch(0.06 0.005 240);
+  --medical-teal: #0891B2; /* Azul Cyan de Dent's 23 */
+  --medical-green: #8BC34A; /* Verde Manzana - Color Principal */
+  --medical-green-light: #AED581; /* Verde Manzana Claro */
+  --medical-green-dark: #689F38; /* Verde Manzana Oscuro */
+  --medical-dark: #0F4C75; /* Azul Oscuro de Dent's 23 */
+  --medical-light: oklch(0.97 0.005 180);
+  --medical-shadow: oklch(0.85 0.02 180);
+  --chart-1: oklch(0.65 0.15 220);
+  --chart-2: oklch(0.6 0.15 150);
+  --chart-3: oklch(0.7 0.15 60);
+  --chart-4: oklch(0.6 0.2 15);
+  --chart-5: oklch(0.55 0.15 280);
+  --radius: 0.5rem;
+  --sidebar: oklch(0.99 0.003 180);
+  --sidebar-foreground: oklch(0.15 0.02 200);
+  --sidebar-primary: oklch(0.65 0.15 220);
+  --sidebar-primary-foreground: oklch(0.06 0.005 240);
+  --sidebar-accent: oklch(0.94 0.01 180);
+  --sidebar-accent-foreground: oklch(0.25 0.02 200);
+  --sidebar-border: oklch(0.9 0.01 180);
+  --sidebar-ring: oklch(0.65 0.15 220);
+}
+
+.light {
+  /* Tema claro para el formulario público */
+  --background: oklch(0.98 0.005 180);
+  --foreground: oklch(0.15 0.02 200);
+  --card: oklch(0.99 0.003 180);
+  --card-foreground: oklch(0.15 0.02 200);
+  --popover: oklch(0.99 0.003 180);
+  --popover-foreground: oklch(0.15 0.02 200);
+  --primary: oklch(0.55 0.15 180);
+  --primary-foreground: oklch(0.99 0.003 180);
+  --secondary: oklch(0.94 0.01 180);
+  --secondary-foreground: oklch(0.25 0.02 200);
+  --muted: oklch(0.96 0.005 180);
+  --muted-foreground: oklch(0.45 0.02 200);
+  --accent: oklch(0.6 0.12 175);
+  --accent-foreground: oklch(0.99 0.003 180);
+  --destructive: oklch(0.6 0.2 15);
+  --destructive-foreground: oklch(0.99 0.003 180);
+  --border: oklch(0.9 0.01 180);
+  --input: oklch(0.97 0.005 180);
+  --ring: oklch(0.55 0.15 180);
+  --success: oklch(0.6 0.15 150);
+  --success-foreground: oklch(0.99 0.003 180);
+  --medical-teal: #0891B2; /* Azul Cyan de Dent's 23 */
+  --medical-green: #8BC34A; /* Verde Manzana - Color Principal */
+  --medical-green-light: #AED581; /* Verde Manzana Claro */
+  --medical-green-dark: #689F38; /* Verde Manzana Oscuro */
+  --medical-dark: #0F4C75; /* Azul Oscuro de Dent's 23 */
+  --medical-light: oklch(0.97 0.005 180);
+  --medical-shadow: oklch(0.85 0.02 180);
+}
+
+@theme inline {
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-geist-mono);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-medical-teal: var(--medical-teal);
+  --color-medical-green: var(--medical-green);
+  --color-medical-dark: var(--medical-dark);
+  --color-medical-light: var(--medical-light);
+  --color-medical-shadow: var(--medical-shadow);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+}
+
+/* Estilos neumórficos personalizados para formulario */
+@layer utilities {
+  .neomorphic {
+    box-shadow: 8px 8px 16px var(--medical-shadow), -8px -8px 16px var(--medical-light);
+  }
+
+  .neomorphic-inset {
+    box-shadow: inset 4px 4px 8px var(--medical-shadow), inset -4px -4px 8px var(--medical-light);
+  }
+
+  .neomorphic-hover {
+    transition: all 0.3s ease;
+  }
+
+  .neomorphic-hover:hover {
+    box-shadow: 12px 12px 24px var(--medical-shadow), -12px -12px 24px var(--medical-light);
+    transform: translateY(-2px);
+  }
+
+  .neomorphic-pressed {
+    box-shadow: inset 6px 6px 12px var(--medical-shadow), inset -6px -6px 12px var(--medical-light);
+    transform: translateY(1px);
+  }
+
+  /* Estilos para gráficos estilo Vercel */
+  .chart-gradient {
+    background: linear-gradient(180deg, var(--chart-1) 0%, transparent 100%);
+  }
+
+  .status-ready {
+    @apply bg-success/10 text-success border-success/20;
+  }
+
+  .status-pending {
+    @apply bg-warning/10 text-warning border-warning/20;
+  }
+
+  .status-error {
+    @apply bg-destructive/10 text-destructive border-destructive/20;
+  }
+}

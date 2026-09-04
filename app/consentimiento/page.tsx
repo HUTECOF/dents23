@@ -1,0 +1,499 @@
+"use client"
+
+import { useState } from "react"
+import { motion } from "framer-motion"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Heart, Shield, Users, Settings, AlertCircle } from "lucide-react"
+import Link from "next/link"
+import Image from "next/image"
+import { patientDataStore } from "@/lib/patient-data-store"
+import { generatePatientPDF } from "@/lib/pdf-generator"
+import VerificationAnimation from "@/components/verification-animation"
+import { saveConsentimiento } from "@/lib/supabase-helpers"
+import { supabase } from "@/lib/supabase"
+import VideoIntro from "@/components/video-intro-simple"
+
+export default function ConsentimientoPage() {
+  const [showVideoIntro, setShowVideoIntro] = useState(true)
+  const [formData, setFormData] = useState({
+    nombrePaciente: "",
+    representanteTutor: "",
+    doctorAsignado: "",
+    procedimiento: "",
+    firmaPaciente: "",
+    nombrePacienteFirma: "",
+    fechaAutorizacion: "",
+    ciudadAutorizacion: "León, Guanajuato"
+  })
+
+  const [errors, setErrors] = useState<{[key: string]: string}>({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showSuccess, setShowSuccess] = useState(false)
+  const [showVerification, setShowVerification] = useState(false)
+
+  const handleInputChange = (name: string, value: string) => {
+    setFormData(prev => ({ ...prev, [name]: value }))
+    if (errors[name]) {
+      setErrors(prev => {
+        const { [name]: _, ...rest } = prev
+        return rest
+      })
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    const requiredFields = [
+      "nombrePaciente",
+      "doctorAsignado", 
+      "procedimiento",
+      "firmaPaciente",
+      "nombrePacienteFirma",
+      "fechaAutorizacion"
+    ]
+
+    const newErrors: {[key: string]: string} = {}
+
+    requiredFields.forEach((field) => {
+      const value = formData[field as keyof typeof formData]
+      if (typeof value === 'string' && value.trim() === '') {
+        newErrors[field] = "Campo requerido"
+      }
+    })
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
+      return
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+      console.log("Consentimiento informado enviado:", formData)
+      
+      // Guardar en el store
+      patientDataStore.setConsentimiento(formData)
+      
+      // Guardar en Supabase
+      const historiaClinicaId = patientDataStore.getHistoriaClinicaId()
+      if (historiaClinicaId) {
+        const savedConsentimiento = await saveConsentimiento(formData, historiaClinicaId)
+        if (savedConsentimiento) {
+          console.log("✅ Consentimiento guardado en Supabase")
+          console.log("🎉 Expediente completo guardado en Supabase!")
+          
+          // Actualizar progreso: Consentimiento completado (100%)
+          try {
+            await supabase.rpc('actualizar_progreso_prospecto', {
+              historia_id: historiaClinicaId,
+              paso_actual: 'consentimiento',
+              completado: true
+            })
+            console.log("✅ Progreso actualizado: Consentimiento (100%) - ¡REGISTRO COMPLETO!")
+          } catch (error) {
+            console.error("❌ Error al actualizar progreso:", error)
+          }
+        } else {
+          console.error("❌ Error al guardar consentimiento en Supabase")
+        }
+      }
+      
+      // Mostrar animación de verificación
+      setShowVerification(true)
+    } catch (error) {
+      console.error("Error al enviar consentimiento:", error)
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleVerificationComplete = () => {
+    // Obtener todos los datos
+    const allData = patientDataStore.getAllData()
+    
+    // Generar PDF
+    generatePatientPDF(allData)
+    
+    // Mostrar mensaje de éxito
+    setShowVerification(false)
+    setShowSuccess(true)
+    
+    // Limpiar datos y redirigir
+    setTimeout(() => {
+      patientDataStore.clearAll()
+      window.location.href = '/'
+    }, 3000)
+  }
+
+  // Mostrar animación de verificación
+  if (showVerification) {
+    return <VerificationAnimation onComplete={handleVerificationComplete} />
+  }
+
+  if (showSuccess) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-medical-light to-background p-4 light flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center"
+        >
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.2, type: "spring" }}
+            className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6"
+          >
+            <motion.svg
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ delay: 0.5, duration: 0.5 }}
+              className="w-10 h-10 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </motion.svg>
+          </motion.div>
+          <h2 className="text-2xl font-bold text-foreground mb-2">¡Proceso Completado!</h2>
+          <p className="text-muted-foreground mb-6">
+            Tu expediente médico completo ha sido generado y descargado exitosamente. El proceso de registro está completo.
+          </p>
+          <Button 
+            onClick={() => window.location.href = '/'}
+            className="neomorphic-hover bg-medical-teal hover:bg-medical-teal/90 text-white"
+          >
+            Finalizar Proceso
+          </Button>
+        </motion.div>
+      </div>
+    )
+  }
+
+  // Mostrar video intro primero
+  if (showVideoIntro) {
+    return (
+      <VideoIntro
+        onVideoEnd={() => setShowVideoIntro(false)}
+        onSkip={() => setShowVideoIntro(false)}
+        title="Consentimiento Informado"
+      />
+    )
+  }
+
+  return (
+    <div className="min-h-screen relative p-2 sm:p-4 md:p-6 light">
+      {/* Fondo con imagen de dientes y gradiente */}
+      <div 
+        className="absolute top-0 left-0 w-full h-full bg-no-repeat bg-cover bg-center z-0"
+        style={{
+          backgroundImage: 'linear-gradient(to top, rgba(235, 248, 255, 1) 0%, rgba(235, 248, 255, 0) 50%), url("https://lh3.googleusercontent.com/aida-public/AB6AXuApwylKMHs0b7OcCa-Dl4pfIC4a6zR34-EedcK-wlqbyisfc1SC9nphMkFP_KhsRjZpwmDqQf1pVJx4dXbC36jUzeWBelKkcELvFNMoIJNtoqdkcZm2vRt57_njvi9-oHVh-s8WG4fEGMKsApTYLG2Gx6BPkyE4ZsvGhCj5gJkDbSlKus-zGmx2Ugt4wgkknplDqYiga5QMcThdB-NESBabGZmuI1SjnJ2DcwJYrFCVyfpAGP7OABeWBLtNbU1d88-eyALwPbMTRwUr")',
+        }}
+      />
+      
+      {/* Logo pequeño en esquina superior izquierda */}
+      <motion.div 
+        initial={{ opacity: 0, x: -20 }} 
+        animate={{ opacity: 1, x: 0 }}
+        className="fixed top-4 left-4 z-50"
+      >
+        <Card className="p-1.5 shadow-lg">
+          <Image 
+            src="/dents23-logo-final.png" 
+            alt="Dent's 23" 
+            width={120} 
+            height={40}
+            className="object-contain"
+          />
+        </Card>
+      </motion.div>
+
+      {/* Botón CRM en esquina superior derecha */}
+      <div className="fixed top-4 right-4 z-50">
+        <Link href="/crm">
+          <Button variant="outline" size="sm" className="neomorphic-hover bg-transparent text-xs sm:text-sm">
+            <Settings className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">Acceso CRM</span>
+            <span className="sm:hidden">CRM</span>
+          </Button>
+        </Link>
+      </div>
+
+      <div className="relative z-10 max-w-4xl mx-auto pb-8">
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          className="text-center mb-4 sm:mb-6 md:mb-8 pt-20"
+        >
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-2">
+            Consentimiento Informado
+          </h1>
+          <p className="text-muted-foreground text-sm sm:text-base md:text-lg px-4">Tratamientos Odontológicos</p>
+        </motion.div>
+
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ delay: 0.2 }}
+        >
+          <Card className="neomorphic border-0 bg-card/50 backdrop-blur-sm">
+            <CardHeader className="text-center px-4 sm:px-6">
+              <CardTitle className="text-lg sm:text-xl md:text-2xl">Consentimiento Informado para Tratamientos Odontológicos</CardTitle>
+              <CardDescription className="text-sm sm:text-base">
+                Último paso del proceso de registro. Por favor lea cuidadosamente y complete la información.
+              </CardDescription>
+            </CardHeader>
+
+            <CardContent className="px-3 sm:px-6">
+              <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+                
+                {/* Texto del Consentimiento */}
+                <section className="space-y-4">
+                  <div className="bg-background/30 rounded-lg p-6 border border-border/50">
+                    <div className="space-y-4 text-sm leading-relaxed">
+                      <p>
+                        <strong>Se hace saber al paciente o a sus padres o tutores</strong> que la Dra. Humbelina Huerta Barajas con la cédula profesional No. 5009960 y con 
+                        el registro de la secretaría de salubridad del estado de Guanajuato No. 4716, y/o el Dr. Erick Mancilla Chio, con la cédula profesional 
+                        No.9175426 y el registro de la secretaría de salubridad del estado de Guanajuato No. 4759 son los dueños de la clínica o consultorio 
+                        dental en el cual usted va a ser atendido, usted como paciente acepta que no todas sus citas será atendido por alguno de ellos y que la 
+                        responsabilidad del tratamiento será del médico tratante del mismo; ya que los doctores que atienden están contratados por honorarios 
+                        y será su responsabilidad cada tratamiento.
+                      </p>
+                      
+                      <p>
+                        Acepto y doy consentimiento de que se me atienda por diferentes médicos, los cuales serán responsables cada uno del tratamiento 
+                        realizado; liberando a la Dra. Humbelina Huerta Barajas y al Dr. Erick Mancilla Chio de toda responsabilidad de tratamientos no hechos 
+                        por ellos.
+                      </p>
+                    </div>
+                  </div>
+                </section>
+
+                {/* Información del Paciente */}
+                <section className="space-y-4">
+                  <h3 className="text-lg font-semibold border-b border-border/50 pb-2">
+                    Información del Paciente
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="nombrePaciente">Nombre del Paciente *</Label>
+                      <Input
+                        id="nombrePaciente"
+                        value={formData.nombrePaciente}
+                        onChange={(e) => handleInputChange("nombrePaciente", e.target.value)}
+                        className="neomorphic-inset"
+                        placeholder="Nombre completo del paciente"
+                      />
+                      {errors.nombrePaciente && (
+                        <div className="flex items-center gap-1 text-destructive text-sm">
+                          <AlertCircle className="w-4 h-4" />
+                          {errors.nombrePaciente}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="representanteTutor">Representante o Tutor (si aplica)</Label>
+                      <Input
+                        id="representanteTutor"
+                        value={formData.representanteTutor}
+                        onChange={(e) => handleInputChange("representanteTutor", e.target.value)}
+                        className="neomorphic-inset"
+                        placeholder="Nombre del representante o tutor"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="doctorAsignado">Doctor Asignado *</Label>
+                      <Input
+                        id="doctorAsignado"
+                        value={formData.doctorAsignado}
+                        onChange={(e) => handleInputChange("doctorAsignado", e.target.value)}
+                        className="neomorphic-inset"
+                        placeholder="Nombre del doctor asignado"
+                      />
+                      {errors.doctorAsignado && (
+                        <div className="flex items-center gap-1 text-destructive text-sm">
+                          <AlertCircle className="w-4 h-4" />
+                          {errors.doctorAsignado}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="procedimiento">Procedimiento a Realizar *</Label>
+                      <Textarea
+                        id="procedimiento"
+                        value={formData.procedimiento}
+                        onChange={(e) => handleInputChange("procedimiento", e.target.value)}
+                        className="neomorphic-inset"
+                        placeholder="Describa brevemente el procedimiento odontológico a realizar"
+                        rows={3}
+                      />
+                      {errors.procedimiento && (
+                        <div className="flex items-center gap-1 text-destructive text-sm">
+                          <AlertCircle className="w-4 h-4" />
+                          {errors.procedimiento}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </section>
+
+                {/* Consentimiento Detallado */}
+                <section className="space-y-4">
+                  <h3 className="text-lg font-semibold border-b border-border/50 pb-2">
+                    Consentimiento Detallado
+                  </h3>
+                  
+                  <div className="bg-background/30 rounded-lg p-6 border border-border/50">
+                    <div className="space-y-4 text-sm leading-relaxed">
+                      <p>
+                        <strong>(NOMBRE DEL PACIENTE, DE SU REPRESENTANTE O TUTOR) EN FORMA VOLUNTARIA CONSIENTO EN QUE EL (LA) DOCTOR(A)</strong> 
+                        _________________________ Y EL AYUDANTE ASIGNADO, ME REALICEN CIRUGÍA O REHABILITACIÓN ODONTOLÓGICA, POR PRESENTAR 
+                        <strong>(SEÑALAR CUADRO CLÍNICO). ENTIENDO QUE ESE PROCEDIMIENTO CONSISTE BÁSICAMENTE EN (SEÑALAR BREVEMENTE EL 
+                        PROCEDIMIENTO CLÍNICO)</strong> _________________________.
+                      </p>
+                      
+                      <p>
+                        _________________________, DEPENDIENDO DEL CRITERIO MÉDICO Y DE LOS 
+                        RECURSOS TÉCNICOS QUE TENGA LA EMPRESA Y/O INSTITUCIÓN DENOMINADA COMERCIALMENTE (PRIME DENTAL CARE).
+                      </p>
+                      
+                      <p>
+                        <strong>ESTE PROCEDIMIENTO ODONTOLÓGICO NO GARANTIZA LA TOTAL DESAPARICIÓN DE MI PROBLEMA</strong>, NI EVITA QUE EN EL FUTURO 
+                        SEAN NECESARIAS NUEVAS INTERVENCIONES PARA SOLUCIONAR PROBLEMAS RESIDUALES O RECIDIVAS, SE ME HA EXPLICADO QUE 
+                        LA GARANTÍA NO ES TOTAL PUES LA MEDICINA Y/O LA ODONTOLOGÍA, NO SON UNA CIENCIA EXACTA, DEBIENDO 
+                        MI MÉDICO COLOCAR TODO SU CONOCIMIENTO Y SU PERICIA EN BUSCAR OBTENER EL MEJOR RESULTADO, ENTIENDO QUE COMO 
+                        EN TODA INTERVENCIÓN O PROCEDIMIENTO MÉDICO-ODONTOLÓGICO SE PUEDEN PRESENTAR COMPLICACIONES COMUNES Y 
+                        POTENCIALMENTE SERIAS QUE PODRÍAN REQUERIR TRATAMIENTOS COMPLEMENTARIOS TANTO MÉDICOS COMO QUIRÚRGICOS 
+                        TALES COMO: NAUSEAS, VÓMITO DOLOR, INFLAMACIÓN, MORETONES, SEROMAS (ACUMULACIÓN DE LÍQUIDO EN LA CICATRIZ), 
+                        GRANULOMAS (REACCIÓN A CUERPO EXTRAÑO A SUTURAS), QUELOIDE (CRECIMIENTO EXCESIVO DE LA CICATRIZ), HEMATOMAS 
+                        (ACUMULACIÓN DE SANGRE), SANGRADO O HEMORRAGIAS CON LA POSIBLE NECESIDAD DE TRANSFUSIÓN (INTRA O 
+                        POSTOPERATORIA), INFECCIONES CON POSIBLE EVOLUCIÓN SÉPTICA.
+                      </p>
+                      
+                      <p>
+                        PIEL, ABSCESOS, REACCIONES ALÉRGICAS, ANEMIA, TROMBOEMBOLISMO, REACCIONES INVOLUNTARIAS DE 
+                        POSIBILIDAD DE COMPLICACIONES SEVERAS COMO SEPTICEMIA (INFECCIÓN GENERALIZADA), PERO COMO EN TODA INTERVENCIÓN 
+                        MÉDICO-ODONTOLÓGICA, EXISTE UN RIESGO EXCEPCIONAL DE MORIR DERIVADO DEL ACTO MÉDICO-ODONTOLÓGICO O DE LA 
+                        SITUACIÓN VITAL DE CADA PACIENTE, EN MI CASO PARTICULAR, EL (LA) DOCTOR (A) ME HA EXPLICADO QUE PRESENTO LOS 
+                        <strong>SIGUIENTES RIESGOS ADICIONALES: ENTIENDO QUE PARA ESTE PROCEDIMIENTO SE NECESITA ANESTESIA</strong>, LA CUAL SE EVALUARÁ Y 
+                        REALIZARÁ POR EL SERVICIO DE MÉDICO TRATANTE. YO HE ENTENDIDO LOS CUIDADOS QUE DEBO TENER ANTES Y DESPUÉS, ESTOY 
+                        SATISFECHO(A) CON LA INFORMACIÓN RECIBIDA DEL MÉDICO TRATANTE, QUIEN ME HA DADO OPORTUNIDAD DE PREGUNTAR 
+                        Y RESOLVER LAS DUDAS, Y TODAS ELLAS HAN SIDO RESUELTAS A SATISFACCIÓN; ADEMÁS, COMPRENDO Y ACEPTO EL ALCANCE Y LOS 
+                        RIESGOS JUSTIFICADOS DE POSIBLE PREVISIÓN QUE CONLLEVA EL PROCEDIMIENTO MÉDICO-ODONTOLÓGICO QUE AQUÍ AUTORIZO.
+                      </p>
+                      
+                      <p>
+                        <strong>EN TALES CONDICIONES CONSIENTO QUE SE ME REALICEN PROCEDIMIENTOS MÉDICO-ODONTOLÓGICOS.</strong>
+                      </p>
+                    </div>
+                  </div>
+                </section>
+
+                {/* Firma */}
+                <section className="space-y-4">
+                  <h3 className="text-lg font-semibold border-b border-border/50 pb-2">
+                    Firma del Consentimiento
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="firmaPaciente">Firma del Paciente *</Label>
+                      <Input
+                        id="firmaPaciente"
+                        value={formData.firmaPaciente}
+                        onChange={(e) => handleInputChange("firmaPaciente", e.target.value)}
+                        className="neomorphic-inset"
+                        placeholder="Escriba su nombre completo para firmar"
+                      />
+                      {errors.firmaPaciente && (
+                        <div className="flex items-center gap-1 text-destructive text-sm">
+                          <AlertCircle className="w-4 h-4" />
+                          {errors.firmaPaciente}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="nombrePacienteFirma">Nombre del Paciente *</Label>
+                      <Input
+                        id="nombrePacienteFirma"
+                        value={formData.nombrePacienteFirma}
+                        onChange={(e) => handleInputChange("nombrePacienteFirma", e.target.value)}
+                        className="neomorphic-inset"
+                        placeholder="Nombre completo del paciente"
+                      />
+                      {errors.nombrePacienteFirma && (
+                        <div className="flex items-center gap-1 text-destructive text-sm">
+                          <AlertCircle className="w-4 h-4" />
+                          {errors.nombrePacienteFirma}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </section>
+
+                {/* Autorización Expedida */}
+                <section className="space-y-4">
+                  <h3 className="text-lg font-semibold border-b border-border/50 pb-2">
+                    Autorización Expedida
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="fechaAutorizacion">Fecha de Autorización *</Label>
+                      <Input
+                        id="fechaAutorizacion"
+                        type="date"
+                        value={formData.fechaAutorizacion}
+                        onChange={(e) => handleInputChange("fechaAutorizacion", e.target.value)}
+                        className="neomorphic-inset"
+                      />
+                      {errors.fechaAutorizacion && (
+                        <div className="flex items-center gap-1 text-destructive text-sm">
+                          <AlertCircle className="w-4 h-4" />
+                          {errors.fechaAutorizacion}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="ciudadAutorizacion">Ciudad de Autorización</Label>
+                      <Input
+                        id="ciudadAutorizacion"
+                        value={formData.ciudadAutorizacion}
+                        onChange={(e) => handleInputChange("ciudadAutorizacion", e.target.value)}
+                        className="neomorphic-inset"
+                        placeholder="León, Guanajuato"
+                      />
+                    </div>
+                  </div>
+                </section>
+
+                <div className="flex justify-center pt-6">
+                  <Button 
+                    type="submit"
+                    size="lg" 
+                    disabled={isSubmitting}
+                    className="neomorphic-hover bg-medical-teal hover:bg-medical-teal/90 text-white font-medium text-base sm:text-lg px-6 sm:px-8 w-full sm:w-auto"
+                  >
+                    {isSubmitting ? "Enviando..." : "Firmar Consentimiento Informado"}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+    </div>
+  )
+}
