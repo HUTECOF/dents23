@@ -23,23 +23,24 @@ export function DiabetesSelector({ value, onChange, label, required = false }: D
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className="relative group"
+      className="studio-question relative group min-w-0 max-w-full"
     >
-      <div className="absolute -inset-0.5 bg-gradient-to-r from-teal-400/20 via-cyan-400/20 to-teal-400/20 rounded-2xl opacity-0 group-hover:opacity-100 transition duration-500 blur-sm" />
-
-      <div className="relative space-y-4 bg-white/80 backdrop-blur-sm rounded-xl p-5 border border-slate-100 shadow-sm hover:shadow-md transition-shadow duration-300">
+      <div className="studio-question-surface relative min-w-0 max-w-full space-y-4 rounded-2xl p-3.5 sm:p-5 transition-all duration-300">
         <div className="flex items-center gap-2">
           <motion.div
             animate={{ scale: [1, 1.2, 1] }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            className="w-2 h-2 rounded-full bg-gradient-to-r from-teal-500 to-cyan-500"
+            className="studio-question-dot w-2 h-2 rounded-full"
           />
           <label className="text-sm font-semibold text-slate-700 leading-relaxed">
             {label} {required && <span className="text-rose-500">*</span>}
           </label>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div
+          className="grid w-full gap-2 sm:gap-3"
+          style={{ gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 10rem), 1fr))" }}
+        >
           {OPTIONS.map((opt) => {
             const isActive = value === opt.id
             const Icon = opt.icon
@@ -50,7 +51,7 @@ export function DiabetesSelector({ value, onChange, label, required = false }: D
                 whileHover={{ scale: 1.03, y: -2 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => onChange(opt.id)}
-                className={`relative flex items-center gap-3 px-4 py-3.5 rounded-xl border-2 transition-all duration-300 overflow-hidden text-left ${
+                className={`studio-choice ${opt.id === "no" ? "studio-choice-no" : ""} relative flex min-w-0 w-full items-center gap-2 sm:gap-3 px-3 sm:px-4 py-3.5 rounded-xl transition-all duration-300 overflow-hidden text-left ${
                   isActive
                     ? `${opt.borderActive} bg-gradient-to-br ${opt.bgActive} ${opt.textActive} shadow-lg ${opt.shadowActive}`
                     : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50/50"
@@ -68,13 +69,17 @@ export function DiabetesSelector({ value, onChange, label, required = false }: D
                 </AnimatePresence>
 
                 <div className={`relative flex items-center justify-center w-9 h-9 rounded-full transition-all duration-300 shrink-0 ${
-                  isActive ? `${opt.activeColor} text-white shadow-md` : "bg-slate-100 text-slate-400"
+                  isActive
+                    ? `${opt.activeColor} text-white shadow-md`
+                    : opt.id === "no"
+                    ? "studio-choice-icon-no-muted"
+                    : "bg-slate-100 text-slate-400"
                 }`}>
                   <Icon className="w-4 h-4" strokeWidth={3} />
                 </div>
                 <div className="relative min-w-0">
                   <span className="block text-sm font-bold truncate">{opt.label}</span>
-                  <span className="block text-[10px] opacity-70 font-medium uppercase tracking-wider">
+                  <span className="block truncate text-[9px] sm:text-[10px] opacity-70 font-medium uppercase tracking-normal sm:tracking-wider">
                     {isActive ? "Seleccionado" : opt.sub}
                   </span>
                 </div>

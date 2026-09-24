@@ -136,10 +136,37 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    box-sizing: border-box;
+  }
+  html {
+    max-width: 100%;
+    overflow-x: hidden;
   }
   body {
     @apply bg-background text-foreground font-sans;
+    max-width: 100%;
+    overflow-x: hidden;
   }
+}
+
+/* Contención compartida para todas las secciones de la historia clínica. */
+.clinical-form,
+.clinical-form > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.clinical-form :where(.grid) > *,
+.clinical-form :where(.flex) > * {
+  min-width: 0;
+}
+
+.clinical-form :where(input, select, textarea, button) {
+  max-width: 100%;
+}
+
+.clinical-form :where(label, p, span, h2, h3) {
+  overflow-wrap: anywhere;
 }
 
 /* Estilos neumórficos personalizados para formulario */
@@ -181,5 +208,474 @@
 
   .status-error {
     @apply bg-destructive/10 text-destructive border-destructive/20;
+  }
+}
+
+/* Dirección visual "clinical studio" para la historia clínica. */
+.clinical-page {
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 8% 4%, rgba(8, 145, 178, 0.3), transparent 28rem),
+    radial-gradient(circle at 92% 16%, rgba(139, 195, 74, 0.14), transparent 24rem),
+    linear-gradient(155deg, #061821 0%, #08303d 46%, #07596a 100%);
+}
+
+.clinical-ambient::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.22;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.055) 1px, transparent 1px);
+  background-size: 52px 52px;
+  -webkit-mask-image: linear-gradient(to bottom, black, transparent 72%);
+  mask-image: linear-gradient(to bottom, black, transparent 72%);
+}
+
+.clinical-orb {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(2px);
+}
+
+.clinical-orb--one {
+  width: 26rem;
+  height: 26rem;
+  top: -13rem;
+  left: -10rem;
+  border: 1px solid rgba(103, 232, 249, 0.22);
+  box-shadow: inset 0 0 80px rgba(6, 182, 212, 0.12);
+}
+
+.clinical-orb--two {
+  width: 34rem;
+  height: 34rem;
+  top: 24rem;
+  right: -19rem;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.clinical-orb--three {
+  width: 18rem;
+  height: 18rem;
+  top: 9rem;
+  right: 14%;
+  background: rgba(139, 195, 74, 0.055);
+  filter: blur(40px);
+}
+
+.clinical-logo-card {
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 18px 45px rgba(2, 18, 27, 0.2);
+  backdrop-filter: blur(18px);
+}
+
+.clinical-crm-button,
+.clinical-theme-button {
+  border-color: rgba(255, 255, 255, 0.24);
+  border-radius: 999px;
+  background: rgba(6, 30, 40, 0.5);
+  color: white;
+  box-shadow: 0 12px 30px rgba(2, 18, 27, 0.18);
+  backdrop-filter: blur(16px);
+}
+
+.clinical-crm-button:hover,
+.clinical-theme-button:hover {
+  border-color: rgba(174, 213, 129, 0.65);
+  background: rgba(8, 145, 178, 0.72);
+  color: white;
+}
+
+.clinical-theme-button {
+  flex: 0 0 auto;
+}
+
+.clinical-hero h1 {
+  letter-spacing: -0.055em;
+  line-height: 0.94;
+  text-wrap: balance;
+  text-shadow: 0 16px 45px rgba(2, 18, 27, 0.22);
+}
+
+.clinical-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-bottom: 1rem;
+  color: #d8f6f8;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.clinical-eyebrow span {
+  width: 1.75rem;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #8bc34a);
+}
+
+.clinical-eyebrow span:last-child {
+  background: linear-gradient(90deg, #8bc34a, transparent);
+}
+
+.clinical-tagline {
+  margin-top: 0.9rem;
+  color: rgba(232, 250, 250, 0.78);
+  font-size: 0.72rem;
+}
+
+.clinical-stepper {
+  padding: 1rem 1.1rem 1.1rem;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 1.5rem;
+  background: rgba(4, 29, 39, 0.3);
+  box-shadow: 0 18px 50px rgba(2, 18, 27, 0.12);
+  backdrop-filter: blur(16px);
+}
+
+.clinical-stepper-label,
+.clinical-stepper-percent {
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+}
+
+.clinical-stepper-percent {
+  color: #dff6bd;
+}
+
+.clinical-step-dot--active {
+  background: white;
+  color: #07849c;
+  box-shadow: 0 8px 20px rgba(255, 255, 255, 0.2);
+}
+
+.clinical-step-dot--completed {
+  background: rgba(255, 255, 255, 0.62);
+  color: #087f91;
+}
+
+.clinical-step-dot--upcoming {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.46);
+}
+
+.clinical-step-connector--completed {
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.clinical-step-connector--upcoming {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.clinical-progress-track {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.clinical-progress-value {
+  background: linear-gradient(90deg, #8bc34a 0%, #53d3cb 52%, #67e8f9 100%);
+  box-shadow: 0 0 18px rgba(103, 232, 249, 0.38);
+}
+
+.clinical-card {
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.74);
+  background: rgba(248, 252, 251, 0.97);
+  box-shadow:
+    0 40px 100px -34px rgba(2, 18, 27, 0.7),
+    0 1px 0 rgba(255, 255, 255, 0.9) inset;
+  backdrop-filter: blur(24px);
+}
+
+.clinical-card::before {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  right: 3rem;
+  left: 3rem;
+  height: 3px;
+  border-radius: 0 0 999px 999px;
+  background: linear-gradient(90deg, transparent, #0891b2 30%, #8bc34a 70%, transparent);
+}
+
+.clinical-form > div > .text-center:first-child h2 {
+  color: #102c38;
+  letter-spacing: -0.04em;
+}
+
+.clinical-form > div > .text-center:first-child p {
+  color: #667b84;
+}
+
+.clinical-form > div > div[class*="bg-gradient-to"],
+.clinical-form > div > section[class*="bg-gradient-to"] {
+  border-radius: 1.35rem;
+  box-shadow: 0 16px 42px -34px rgba(12, 57, 70, 0.55);
+}
+
+.clinical-form :where(input, select, textarea) {
+  transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+}
+
+.clinical-form :where(input, select, textarea):focus {
+  border-color: rgba(8, 145, 178, 0.75);
+  box-shadow: 0 0 0 4px rgba(8, 145, 178, 0.1);
+}
+
+.studio-question-surface {
+  border: 1px solid #dfe9ea;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(248, 252, 251, 0.94));
+  box-shadow: 0 12px 28px -24px rgba(8, 52, 64, 0.55);
+}
+
+.studio-question:hover .studio-question-surface {
+  border-color: rgba(8, 145, 178, 0.34);
+  box-shadow: 0 18px 36px -26px rgba(8, 82, 98, 0.62);
+}
+
+.studio-question-dot {
+  background: #8bc34a;
+  box-shadow: 0 0 0 4px rgba(139, 195, 74, 0.12);
+}
+
+.studio-choice {
+  min-height: 4rem;
+  border: 1px solid #d8e4e6;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset;
+}
+
+.studio-choice:hover {
+  border-color: rgba(8, 145, 178, 0.52);
+  background: #f4fbfb;
+}
+
+.studio-choice-active.studio-choice-yes {
+  border-color: rgba(112, 165, 50, 0.72);
+  background: linear-gradient(135deg, #f3fae9, #ebf7ef);
+  box-shadow: 0 12px 28px -20px rgba(104, 159, 56, 0.7);
+}
+
+.studio-choice-active.studio-choice-no {
+  border-color: rgba(225, 29, 72, 0.62);
+  background: linear-gradient(135deg, #fff1f2, #fff7f7);
+  box-shadow: 0 12px 28px -20px rgba(225, 29, 72, 0.52);
+}
+
+.studio-choice-no:hover {
+  border-color: rgba(225, 29, 72, 0.46);
+}
+
+.studio-choice-icon {
+  border: 1px solid #e0eaeb;
+}
+
+.studio-choice-icon-active {
+  box-shadow: 0 8px 20px -10px rgba(8, 56, 68, 0.55);
+}
+
+.studio-choice-icon-yes {
+  background: linear-gradient(145deg, #8bc34a, #689f38);
+}
+
+.studio-choice-icon-no {
+  background: linear-gradient(145deg, #f43f5e, #be123c);
+}
+
+.studio-choice-icon-no-muted {
+  border: 1px solid #fecdd3;
+  background: #fff1f2;
+  color: #e11d48;
+}
+
+.studio-selector-option {
+  border: 1px solid #dbe7e8;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 12px 28px -24px rgba(8, 52, 64, 0.5);
+}
+
+.studio-selector-option:hover {
+  border-color: rgba(8, 145, 178, 0.45);
+  box-shadow: 0 18px 34px -25px rgba(8, 82, 98, 0.64);
+}
+
+.studio-selector-option-active {
+  border-color: rgba(8, 145, 178, 0.72);
+  background: linear-gradient(145deg, #f4fbfb, #eff8ed);
+  box-shadow: 0 16px 34px -22px rgba(8, 111, 130, 0.58);
+}
+
+.clinical-nav {
+  border-color: #dfe9ea;
+  background: rgba(248, 252, 251, 0.9);
+  box-shadow: 0 -16px 36px -30px rgba(8, 52, 64, 0.48);
+  backdrop-filter: blur(18px);
+}
+
+/* Modo claro: conserva los colores de marca con una superficie luminosa. */
+.clinical-page--light {
+  background:
+    radial-gradient(circle at 8% 4%, rgba(6, 182, 212, 0.2), transparent 28rem),
+    radial-gradient(circle at 92% 16%, rgba(139, 195, 74, 0.14), transparent 24rem),
+    linear-gradient(155deg, #f4fbfa 0%, #e5f5f3 48%, #d8eef0 100%);
+}
+
+.clinical-page--light .clinical-ambient::before {
+  opacity: 0.38;
+  background-image:
+    linear-gradient(rgba(8, 92, 108, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(8, 92, 108, 0.07) 1px, transparent 1px);
+}
+
+.clinical-page--light .clinical-orb--one {
+  border-color: rgba(8, 145, 178, 0.2);
+  box-shadow: inset 0 0 80px rgba(6, 182, 212, 0.09);
+}
+
+.clinical-page--light .clinical-orb--two {
+  border-color: rgba(8, 145, 178, 0.1);
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.clinical-page--light .clinical-hero h1 {
+  color: #103644;
+  text-shadow: 0 16px 45px rgba(8, 82, 98, 0.1);
+}
+
+.clinical-page--light .clinical-eyebrow,
+.clinical-page--light .clinical-tagline {
+  color: #176979;
+}
+
+.clinical-page--light .clinical-crm-button,
+.clinical-page--light .clinical-theme-button {
+  border-color: rgba(8, 112, 132, 0.2);
+  background: rgba(255, 255, 255, 0.72);
+  color: #155466;
+  box-shadow: 0 12px 30px rgba(8, 82, 98, 0.1);
+}
+
+.clinical-page--light .clinical-crm-button:hover,
+.clinical-page--light .clinical-theme-button:hover {
+  border-color: rgba(8, 145, 178, 0.48);
+  background: white;
+  color: #087f91;
+}
+
+.clinical-page--light .clinical-stepper {
+  border-color: rgba(8, 112, 132, 0.14);
+  background: rgba(255, 255, 255, 0.58);
+  box-shadow: 0 18px 50px rgba(8, 82, 98, 0.1);
+}
+
+.clinical-page--light .clinical-stepper-label,
+.clinical-page--light .clinical-stepper-percent {
+  border-color: rgba(8, 112, 132, 0.12);
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.clinical-page--light .clinical-stepper-label span,
+.clinical-page--light .clinical-stepper-percent span {
+  color: #155466;
+}
+
+.clinical-page--light .clinical-step-dot--active {
+  background: #087f91;
+  color: white;
+  box-shadow: 0 8px 20px rgba(8, 127, 145, 0.24);
+}
+
+.clinical-page--light .clinical-step-dot--completed {
+  background: rgba(8, 145, 178, 0.15);
+  color: #087f91;
+}
+
+.clinical-page--light .clinical-step-dot--upcoming {
+  border: 1px solid rgba(8, 112, 132, 0.12);
+  background: rgba(255, 255, 255, 0.68);
+  color: rgba(21, 84, 102, 0.42);
+}
+
+.clinical-page--light .clinical-step-connector--completed {
+  background: rgba(8, 145, 178, 0.32);
+}
+
+.clinical-page--light .clinical-step-connector--upcoming,
+.clinical-page--light .clinical-progress-track {
+  background: rgba(8, 112, 132, 0.12);
+}
+
+.clinical-page--light .clinical-card {
+  border-color: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 38px 90px -38px rgba(8, 82, 98, 0.38);
+}
+
+@media (max-width: 639px) {
+  .clinical-logo {
+    top: 0.75rem;
+    left: 0.75rem;
+  }
+
+  .clinical-logo-card img {
+    width: 5.5rem;
+  }
+
+  .clinical-actions {
+    top: 1rem;
+    right: 0.75rem;
+  }
+
+  .clinical-crm-button {
+    height: 2rem;
+    padding-inline: 0.75rem;
+    font-size: 0.7rem;
+  }
+
+  .clinical-theme-button {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .clinical-hero {
+    padding-top: 4.75rem;
+  }
+
+  .clinical-eyebrow {
+    gap: 0.45rem;
+    font-size: 0.58rem;
+    letter-spacing: 0.14em;
+  }
+
+  .clinical-eyebrow span {
+    width: 1rem;
+  }
+
+  .clinical-stepper {
+    padding: 0.8rem 0.65rem 0.85rem;
+    border-radius: 1.1rem;
+  }
+
+  .clinical-card::before {
+    right: 1.5rem;
+    left: 1.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .clinical-page *,
+  .clinical-page *::before,
+  .clinical-page *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }

@@ -16,18 +16,15 @@ export function ThumbsSelector({ value, onChange, label, required = false }: Thu
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className="relative group"
+      className="studio-question relative group min-w-0 max-w-full"
     >
-      {/* Glowing background effect */}
-      <div className="absolute -inset-0.5 bg-gradient-to-r from-teal-400/20 via-cyan-400/20 to-teal-400/20 rounded-2xl opacity-0 group-hover:opacity-100 transition duration-500 blur-sm" />
-
-      <div className="relative space-y-4 bg-white/80 backdrop-blur-sm rounded-xl p-5 border border-slate-100 shadow-sm hover:shadow-md transition-shadow duration-300">
+      <div className="studio-question-surface relative min-w-0 max-w-full space-y-4 rounded-2xl p-3.5 sm:p-5 transition-all duration-300">
         {/* Question label with animated dot */}
         <div className="flex items-center gap-2">
           <motion.div
             animate={{ scale: [1, 1.2, 1] }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            className="w-2 h-2 rounded-full bg-gradient-to-r from-teal-500 to-cyan-500"
+            className="studio-question-dot w-2 h-2 rounded-full"
           />
           <label className="text-sm font-semibold text-slate-700 leading-relaxed">
             {label} {required && <span className="text-rose-500">*</span>}
@@ -35,17 +32,20 @@ export function ThumbsSelector({ value, onChange, label, required = false }: Thu
         </div>
 
         {/* Buttons */}
-        <div className="flex gap-4 justify-center sm:justify-start">
+        <div
+          className="grid w-full gap-2 sm:gap-3"
+          style={{ gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 9rem), 1fr))" }}
+        >
           {/* YES button */}
           <motion.button
             type="button"
             whileHover={{ scale: 1.04, y: -2 }}
             whileTap={{ scale: 0.96 }}
             onClick={() => onChange("si")}
-            className={`relative flex-1 sm:flex-none flex items-center gap-3 px-6 py-4 rounded-xl border-2 transition-all duration-300 overflow-hidden ${
+            className={`studio-choice studio-choice-yes relative flex min-w-0 w-full items-center gap-2 px-3 py-3 sm:py-4 rounded-xl transition-all duration-300 overflow-hidden ${
               value === "si"
-                ? "border-emerald-400 bg-gradient-to-br from-emerald-50 to-teal-50 text-emerald-800 shadow-lg shadow-emerald-200/50"
-                : "border-slate-200 bg-white text-slate-500 hover:border-emerald-300 hover:bg-emerald-50/50 hover:text-emerald-600"
+                ? "studio-choice-active text-emerald-900"
+                : "text-slate-500"
             }`}
           >
             {/* Selected glow */}
@@ -60,16 +60,16 @@ export function ThumbsSelector({ value, onChange, label, required = false }: Thu
               )}
             </AnimatePresence>
 
-            <div className={`relative flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 ${
+            <div className={`relative flex shrink-0 items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full transition-all duration-300 ${
               value === "si"
-                ? "bg-emerald-500 text-white shadow-md shadow-emerald-300"
-                : "bg-slate-100 text-slate-400"
+                ? "studio-choice-icon-active studio-choice-icon-yes text-white"
+                : "studio-choice-icon bg-slate-100 text-slate-400"
             }`}>
               <Check className="w-5 h-5" strokeWidth={3} />
             </div>
-            <div className="relative text-left">
+            <div className="relative min-w-0 text-left">
               <span className="block text-lg font-bold">Sí</span>
-              <span className="block text-[10px] opacity-70 font-medium uppercase tracking-wider">
+              <span className="block break-words text-[9px] sm:text-[10px] opacity-70 font-medium uppercase tracking-normal sm:tracking-wider leading-tight">
                 {value === "si" ? "Seleccionado" : "Presione para sí"}
               </span>
             </div>
@@ -81,10 +81,10 @@ export function ThumbsSelector({ value, onChange, label, required = false }: Thu
             whileHover={{ scale: 1.04, y: -2 }}
             whileTap={{ scale: 0.96 }}
             onClick={() => onChange("no")}
-            className={`relative flex-1 sm:flex-none flex items-center gap-3 px-6 py-4 rounded-xl border-2 transition-all duration-300 overflow-hidden ${
+            className={`studio-choice studio-choice-no relative flex min-w-0 w-full items-center gap-2 px-3 py-3 sm:py-4 rounded-xl transition-all duration-300 overflow-hidden ${
               value === "no"
-                ? "border-rose-400 bg-gradient-to-br from-rose-50 to-red-50 text-rose-800 shadow-lg shadow-rose-200/50"
-                : "border-slate-200 bg-white text-slate-500 hover:border-rose-300 hover:bg-rose-50/50 hover:text-rose-600"
+                ? "studio-choice-active text-rose-900"
+                : "text-slate-500"
             }`}
           >
             <AnimatePresence>
@@ -98,16 +98,16 @@ export function ThumbsSelector({ value, onChange, label, required = false }: Thu
               )}
             </AnimatePresence>
 
-            <div className={`relative flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 ${
+            <div className={`relative flex shrink-0 items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full transition-all duration-300 ${
               value === "no"
-                ? "bg-rose-500 text-white shadow-md shadow-rose-300"
-                : "bg-slate-100 text-slate-400"
+                ? "studio-choice-icon-active studio-choice-icon-no text-white"
+                : "studio-choice-icon studio-choice-icon-no-muted"
             }`}>
               <X className="w-5 h-5" strokeWidth={3} />
             </div>
-            <div className="relative text-left">
+            <div className="relative min-w-0 text-left">
               <span className="block text-lg font-bold">No</span>
-              <span className="block text-[10px] opacity-70 font-medium uppercase tracking-wider">
+              <span className="block break-words text-[9px] sm:text-[10px] opacity-70 font-medium uppercase tracking-normal sm:tracking-wider leading-tight">
                 {value === "no" ? "Seleccionado" : "Presione para no"}
               </span>
             </div>

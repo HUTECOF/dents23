@@ -10,18 +10,18 @@ interface GenderSelectorProps {
 
 export function GenderSelector({ value, onChange, label }: GenderSelectorProps) {
   return (
-    <div className="space-y-3">
+    <div className="studio-selector min-w-0 max-w-full space-y-3">
       <label className="text-sm font-medium text-foreground">{label}</label>
-      <div className="flex gap-4 justify-center">
+      <div className="grid grid-cols-2 gap-2 sm:gap-4">
         {/* Masculino */}
         <motion.button
           type="button"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => onChange("masculino")}
-          className={`flex flex-col items-center gap-2 p-6 rounded-xl border-2 transition-all ${
+          className={`studio-selector-option flex min-w-0 w-full flex-col items-center gap-2 p-3 sm:p-6 rounded-2xl transition-all ${
             value === "masculino"
-              ? "border-blue-500 bg-blue-50"
+              ? "studio-selector-option-active border-blue-500 bg-blue-50"
               : "border-gray-300 bg-white hover:border-blue-300"
           }`}
         >
@@ -37,9 +37,9 @@ export function GenderSelector({ value, onChange, label }: GenderSelectorProps) 
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => onChange("femenino")}
-          className={`flex flex-col items-center gap-2 p-6 rounded-xl border-2 transition-all ${
+          className={`studio-selector-option flex min-w-0 w-full flex-col items-center gap-2 p-3 sm:p-6 rounded-2xl transition-all ${
             value === "femenino"
-              ? "border-pink-500 bg-pink-50"
+              ? "studio-selector-option-active border-pink-500 bg-pink-50"
               : "border-gray-300 bg-white hover:border-pink-300"
           }`}
         >

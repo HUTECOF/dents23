@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ChevronLeft, ChevronRight, Heart, User, Building2, Stethoscope, Calendar, Phone, Mail, MapPin, Check } from "lucide-react"
+import { ChevronLeft, ChevronRight, Heart, User, Building2, Stethoscope, Calendar, Phone, Mail, MapPin, Check, Moon, Sun } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { generateFolio, getCurrentDate } from "@/lib/folio-generator"
@@ -58,6 +58,7 @@ export default function HistoriaClinicaNueva() {
   const [nipVerified, setNipVerified] = useState(false)
   const [nipError, setNipError] = useState("")
   const [loadedDraft, setLoadedDraft] = useState(false)
+  const [colorMode, setColorMode] = useState<"light" | "dark">("dark")
   
   // Generar folio y fecha automáticamente
   const [folio] = useState(generateFolio())
@@ -328,6 +329,24 @@ export default function HistoriaClinicaNueva() {
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
+  useEffect(() => {
+    const storedMode = localStorage.getItem("historiaClinicaColorMode")
+    if (storedMode === "light" || storedMode === "dark") {
+      setColorMode(storedMode)
+      return
+    }
+
+    setColorMode(window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+  }, [])
+
+  const toggleColorMode = () => {
+    setColorMode((currentMode) => {
+      const nextMode = currentMode === "dark" ? "light" : "dark"
+      localStorage.setItem("historiaClinicaColorMode", nextMode)
+      return nextMode
+    })
+  }
+
   // Cargar borrador guardado
   useEffect(() => {
     if (typeof window === "undefined" || loadedDraft) return
@@ -410,54 +429,66 @@ export default function HistoriaClinicaNueva() {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden" style={{ background: "linear-gradient(135deg, #0891B2 0%, #06B6D4 100%)" }}>
-      {/* Animated background particles */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute w-96 h-96 bg-white/[0.04] rounded-full -top-48 -left-48 animate-pulse" style={{ animationDuration: '6s' }}></div>
-        <div className="absolute w-[28rem] h-[28rem] bg-white/[0.03] rounded-full top-1/4 -right-56 animate-pulse" style={{ animationDuration: '8s' }}></div>
-        <div className="absolute w-80 h-80 bg-white/[0.04] rounded-full bottom-0 left-1/4 animate-pulse" style={{ animationDuration: '5s' }}></div>
-        <div className="absolute w-56 h-56 bg-white/[0.03] rounded-full bottom-1/4 right-1/3 animate-pulse" style={{ animationDuration: '7s' }}></div>
-        <div className="absolute w-40 h-40 bg-teal-300/10 rounded-full top-1/2 left-1/2 animate-pulse" style={{ animationDuration: '4s' }}></div>
-        <div className="absolute w-32 h-32 bg-cyan-300/10 rounded-full top-1/3 right-1/4 animate-pulse" style={{ animationDuration: '5s' }}></div>
+    <div className={`clinical-page clinical-page--${colorMode} min-h-screen w-full max-w-full relative overflow-x-hidden`}>
+      {/* Fondo editorial de estudio */}
+      <div className="clinical-ambient absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+        <div className="clinical-orb clinical-orb--one" />
+        <div className="clinical-orb clinical-orb--two" />
+        <div className="clinical-orb clinical-orb--three" />
       </div>
 
       {/* Logo pequeño en esquina superior izquierda */}
       <motion.div 
         initial={{ opacity: 0, x: -20 }} 
         animate={{ opacity: 1, x: 0 }}
-        className="absolute top-4 left-4 z-50"
+        className="clinical-logo absolute top-4 left-4 z-50"
       >
-        <Card className="p-1.5 shadow-lg">
+        <Card className="clinical-logo-card p-2">
           <Image 
             src="/dents23-logo-final.png" 
             alt="Dent's 23" 
             width={120} 
             height={40}
-            className="object-contain"
+            className="h-auto max-w-full object-contain"
+            style={{ height: "auto" }}
           />
         </Card>
       </motion.div>
 
       {/* Botón CRM en esquina superior derecha */}
-      <div className="absolute top-6 right-6 z-50">
+      <div className="clinical-actions absolute top-6 right-6 z-50 flex items-center gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          onClick={toggleColorMode}
+          className="clinical-theme-button rounded-full"
+          aria-label={colorMode === "dark" ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+          title={colorMode === "dark" ? "Modo claro" : "Modo oscuro"}
+        >
+          {colorMode === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+        </Button>
         <Link href="/crm">
-          <Button variant="outline" size="sm" className="bg-white/90 backdrop-blur-sm">
+          <Button variant="outline" size="sm" className="clinical-crm-button">
             Acceso CRM
           </Button>
         </Link>
       </div>
 
-      <div className="relative z-10 max-w-4xl mx-auto px-4 py-8">
+      <div className="clinical-container relative z-10 w-full max-w-5xl min-w-0 mx-auto px-3 sm:px-5 py-6 sm:py-8">
         {/* Header centrado */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }} 
           animate={{ opacity: 1, y: 0 }} 
-          className="text-center mb-8 pt-20"
+          className="clinical-hero text-center mb-8 pt-20"
         >
-          <h1 className="text-5xl md:text-6xl font-bold text-white mb-2">
+          <div className="clinical-eyebrow" aria-hidden="true">
+            <span /> Historia clínica digital <span />
+          </div>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-2 break-words">
             Bienvenido a<br />Dent's 23
           </h1>
-          <p className="text-white/90 text-xl font-light tracking-wider">WE SERVE PEOPLE</p>
+          <p className="clinical-tagline text-lg sm:text-xl font-medium tracking-[0.28em]">WE SERVE PEOPLE</p>
         </motion.div>
 
         {/* Stepper Progress Bar */}
@@ -465,7 +496,7 @@ export default function HistoriaClinicaNueva() {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.5 }}
-          className="mb-8"
+          className="clinical-stepper mb-8"
         >
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
@@ -473,14 +504,14 @@ export default function HistoriaClinicaNueva() {
                 key={currentSection}
                 initial={{ scale: 0.8 }}
                 animate={{ scale: 1 }}
-                className="bg-white/20 backdrop-blur-sm rounded-full px-3 py-1"
+                className="clinical-stepper-label rounded-full px-3 py-1"
               >
                 <span className="text-white text-xs font-bold">
                   {sections[currentSection]?.title || "Inicio"}
                 </span>
               </motion.div>
             </div>
-            <div className="bg-white/15 backdrop-blur-sm rounded-full px-3 py-1">
+            <div className="clinical-stepper-percent rounded-full px-3 py-1">
               <span className="text-white text-xs font-bold">
                 {Math.round(((currentSection + 1) / sections.length) * 100)}%
               </span>
@@ -488,7 +519,7 @@ export default function HistoriaClinicaNueva() {
           </div>
 
           {/* Step dots */}
-          <div className="flex items-center gap-1.5 mb-3">
+          <div className="flex min-w-0 items-center gap-0.5 sm:gap-1.5 mb-3">
             {sections.map((sec, idx) => {
               const isActive = idx === currentSection
               const isCompleted = idx < currentSection
@@ -502,28 +533,28 @@ export default function HistoriaClinicaNueva() {
                   onClick={() => {
                     if (idx <= currentSection + 1) setCurrentSection(idx)
                   }}
-                  className="relative group flex-1"
+                  className="relative group min-w-0 flex-1"
                 >
                   <div className={`flex flex-col items-center gap-1 transition-all duration-500 ${
                     isActive ? "opacity-100" : isCompleted ? "opacity-80" : "opacity-40"
                   }`}>
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-500 ${
+                    <div className={`clinical-step-dot w-5 h-5 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all duration-500 ${
                       isActive
-                        ? "bg-white text-teal-600 shadow-lg shadow-white/30 scale-110"
+                        ? "clinical-step-dot--active scale-110"
                         : isCompleted
-                        ? "bg-white/60 text-teal-600"
-                        : "bg-white/20 text-white/60"
+                        ? "clinical-step-dot--completed"
+                        : "clinical-step-dot--upcoming"
                     }`}>
                       {isCompleted ? (
-                        <Check className="w-4 h-4" />
+                        <Check className="w-3 h-3 sm:w-4 sm:h-4" />
                       ) : (
-                        <Icon className="w-4 h-4" />
+                        <Icon className="w-3 h-3 sm:w-4 sm:h-4" />
                       )}
                     </div>
                   </div>
                   {idx < sections.length - 1 && (
-                    <div className={`absolute top-4 left-1/2 w-full h-0.5 transition-all duration-500 ${
-                      isCompleted ? "bg-white/60" : "bg-white/20"
+                    <div className={`clinical-step-connector absolute top-2.5 sm:top-4 left-1/2 w-full h-0.5 transition-all duration-500 ${
+                      isCompleted ? "clinical-step-connector--completed" : "clinical-step-connector--upcoming"
                     }`} />
                   )}
                   {/* Tooltip on hover */}
@@ -536,12 +567,12 @@ export default function HistoriaClinicaNueva() {
           </div>
 
           {/* Progress line */}
-          <div className="w-full h-1.5 bg-white/20 rounded-full overflow-hidden">
+          <div className="clinical-progress-track w-full h-1.5 rounded-full overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${((currentSection + 1) / sections.length) * 100}%` }}
               transition={{ duration: 0.6, ease: "easeInOut" }}
-              className="h-full bg-gradient-to-r from-white to-teal-200 rounded-full shadow-[0_0_10px_rgba(255,255,255,0.5)]"
+              className="clinical-progress-value h-full rounded-full"
             />
           </div>
         </motion.div>
@@ -552,9 +583,9 @@ export default function HistoriaClinicaNueva() {
           animate={{ opacity: 1, y: 0 }} 
           transition={{ delay: 0.2 }}
         >
-          <Card className="shadow-[0_20px_60px_-15px_rgba(8,145,178,0.4)] border border-white/60 bg-white/95 backdrop-blur-xl rounded-3xl overflow-hidden">
-            <CardContent className="p-6 md:p-10">
-              <form className="space-y-8">
+          <Card className="clinical-card w-full min-w-0 max-w-full rounded-[1.75rem] overflow-hidden">
+            <CardContent className="clinical-card-content min-w-0 max-w-full p-4 sm:p-7 md:p-10">
+              <form className="clinical-form min-w-0 max-w-full space-y-8">
                 
                 {/* SECCIÓN 0: DATOS DEL CONSULTORIO */}
                 {currentSection === 0 && (
@@ -3282,8 +3313,8 @@ export default function HistoriaClinicaNueva() {
                           </div>
 
                           {/* Tipo + Folio + Fecha */}
-                          <div className="flex items-center justify-between px-4 py-2 bg-gray-100 border-b border-gray-300">
-                            <div className="flex gap-3">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-3 sm:px-4 py-2 bg-gray-100 border-b border-gray-300">
+                            <div className="flex flex-wrap gap-3">
                               {(["interna", "externa"] as const).map(tipo => (
                                 <label key={tipo} className="flex items-center gap-1 cursor-pointer font-semibold uppercase text-xs">
                                   <input
@@ -3311,9 +3342,10 @@ export default function HistoriaClinicaNueva() {
                           </div>
 
                           {/* Tabla TRATAMIENTO */}
-                          <div className="px-4 py-3">
+                          <div className="min-w-0 px-3 sm:px-4 py-3">
                             <p className="font-bold uppercase text-xs mb-2 text-gray-600">TRATAMIENTO A REALIZAR</p>
-                            <table className="w-full border border-gray-400 text-xs">
+                            <div className="w-full max-w-full overflow-x-auto overscroll-x-contain">
+                            <table className="w-full min-w-[580px] border border-gray-400 text-xs">
                               <thead>
                                 <tr className="bg-gray-200 text-gray-800">
                                   <th className="border border-gray-400 px-3 py-1.5 text-left font-bold uppercase">TRATAMIENTO</th>
@@ -3384,6 +3416,7 @@ export default function HistoriaClinicaNueva() {
                                 </tr>
                               </tbody>
                             </table>
+                            </div>
 
                             <button
                               type="button"
@@ -3458,7 +3491,7 @@ export default function HistoriaClinicaNueva() {
                           {/* Firmas */}
                           <div className="border-t-2 border-gray-400 px-4 py-3">
                             <p className="font-bold uppercase text-xs mb-3 text-gray-600">FIRMAS DE CONFORMIDAD</p>
-                            <div className="flex justify-between gap-8">
+                            <div className="flex flex-col sm:flex-row justify-between gap-6 sm:gap-8">
                               <div className="flex-1 text-center">
                                 <div className="border-b-2 border-gray-600 mb-1 h-8"></div>
                                 <p className="text-xs font-semibold uppercase text-gray-700">FIRMA DEL COLABORADOR</p>
@@ -4025,7 +4058,7 @@ export default function HistoriaClinicaNueva() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 }}
-                  className="flex flex-col sm:flex-row gap-3 justify-between items-center pt-6 pb-4 border-t border-slate-100 sticky bottom-0 bg-white/95 backdrop-blur-lg z-30 px-2 md:-mx-10 md:px-10 shadow-[0_-10px_40px_-10px_rgba(0,0,0,0.08)] max-w-full"
+                  className="clinical-nav flex w-full min-w-0 max-w-full flex-col sm:flex-row gap-3 justify-between items-center pt-6 pb-4 border-t sticky bottom-0 z-30 px-0 sm:px-2"
                 >
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
                     <Button

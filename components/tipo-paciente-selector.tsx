@@ -47,7 +47,7 @@ export function TipoPacienteSelector({ value, onChange, label, required = false 
   ]
 
   return (
-    <div className="space-y-4">
+    <div className="studio-selector min-w-0 max-w-full space-y-4">
       <label className="text-lg font-bold text-foreground block text-center">
         {label} {required && <span className="text-red-500">*</span>}
       </label>
@@ -63,9 +63,9 @@ export function TipoPacienteSelector({ value, onChange, label, required = false 
               whileHover={{ scale: 1.02, y: -2 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => onChange(opcion.id)}
-              className={`relative overflow-hidden rounded-2xl border-3 transition-all p-6 ${
+              className={`studio-selector-option relative min-w-0 w-full overflow-hidden rounded-2xl transition-all p-4 sm:p-6 ${
                 isSelected
-                  ? `border-${opcion.color}-500 bg-${opcion.color}-50 shadow-lg shadow-${opcion.color}-200`
+                  ? `studio-selector-option-active border-${opcion.color}-500 bg-${opcion.color}-50 shadow-lg shadow-${opcion.color}-200`
                   : "border-gray-300 bg-white hover:border-gray-400 hover:shadow-md"
               }`}
             >
