@@ -9,6 +9,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 export interface HistoriaClinica {
   id?: string
   created_at?: string
+  doctor_id?: string
   // Datos Personales
   empresa: string
   antiguedad: string

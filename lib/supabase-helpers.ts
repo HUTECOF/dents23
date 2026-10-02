@@ -8,6 +8,27 @@ export interface HistoriaClinicaExtras {
   planTratamiento?: unknown
 }
 
+export interface IdentifiedDoctor {
+  id: string
+  nombre: string
+  slug: string
+}
+
+function getWorkflowToken() {
+  if (typeof window === 'undefined') return null
+  return localStorage.getItem('historiaClinicaWorkflowToken')
+}
+
+export async function identifyDoctorByNip(nip: string): Promise<IdentifiedDoctor | null> {
+  const { data, error } = await supabase.rpc('identificar_medico_por_nip', { p_nip: nip })
+  if (error || !data || !Array.isArray(data) || data.length !== 1) {
+    if (error) console.error('Error al validar NIP médico:', error)
+    return null
+  }
+
+  return data[0] as IdentifiedDoctor
+}
+
 // Función para subir imagen a Supabase Storage
 export async function uploadImage(file: string, fileName: string, folder: 'firmas' | 'fotos'): Promise<string | null> {
   try {
@@ -54,7 +75,7 @@ export async function uploadImage(file: string, fileName: string, folder: 'firma
 }
 
 // Función para guardar historia clínica (compatible con nueva y vieja versión)
-export async function saveHistoriaClinica(data: any, extras: HistoriaClinicaExtras = {}) {
+export async function saveHistoriaClinica(data: any, extras: HistoriaClinicaExtras = {}, doctorNip?: string) {
   try {
     const firmaOriginal = data.firmaResponsable || data.firmaPaciente || ''
     const fotoOriginal = data.ineResponsable || data.fotoPaciente || ''
@@ -168,9 +189,31 @@ export async function saveHistoriaClinica(data: any, extras: HistoriaClinicaExtr
       updated_at: new Date().toISOString(),
     }
     
+    if (doctorNip) {
+      const { data: securedResult, error: securedError } = await supabase.rpc('guardar_historia_clinica_con_nip', {
+        p_historia: historiaData,
+        p_nip: doctorNip,
+      })
+
+      if (securedError || !securedResult?.historia || !securedResult?.workflow_token) {
+        console.error('Error al guardar historia clínica con asignación médica:', securedError)
+        return null
+      }
+
+      return {
+        ...securedResult.historia,
+        workflow_token: securedResult.workflow_token,
+      }
+    }
+
+    const { data: authData } = await supabase.auth.getUser()
+    const authenticatedHistoriaData = authData.user
+      ? { ...historiaData, doctor_id: authData.user.id }
+      : historiaData
+
     const { data: insertedData, error } = await supabase
       .from('historias_clinicas')
-      .insert([historiaData])
+      .insert([authenticatedHistoriaData])
       .select()
       .single()
     
@@ -188,10 +231,14 @@ export async function saveHistoriaClinica(data: any, extras: HistoriaClinicaExtr
 
 export async function updateHistoriaClinicaSection(historiaClinicaId: string, section: string, data: unknown) {
   try {
+    const workflowToken = getWorkflowToken()
+    if (!workflowToken) return null
+
     const { data: updatedData, error } = await supabase.rpc('guardar_seccion_expediente', {
       p_historia_id: historiaClinicaId,
       p_seccion: section,
       p_datos: data,
+      p_token: workflowToken,
     })
 
     if (error) {
@@ -236,26 +283,20 @@ export async function saveContrato(data: any, historiaClinicaId: string) {
       ciudad_firma: data.ciudadFirma || ''
     }
     
-    const { data: existingContrato } = await supabase
-      .from('contratos')
-      .select('id')
-      .eq('historia_clinica_id', historiaClinicaId)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
+    const workflowToken = getWorkflowToken()
+    if (!workflowToken) return null
 
-    const contratoQuery = existingContrato
-      ? supabase.from('contratos').update(contratoData).eq('id', existingContrato.id)
-      : supabase.from('contratos').insert([contratoData])
-    const { data: insertedData, error } = await contratoQuery.select().single()
+    const { data: insertedData, error } = await supabase.rpc('guardar_contrato_flujo', {
+      p_historia_id: historiaClinicaId,
+      p_token: workflowToken,
+      p_contrato: contratoData,
+      p_datos: data,
+    })
     
     if (error) {
       console.error('Error al guardar contrato:', error)
       return null
     }
-
-    const completeData = await updateHistoriaClinicaSection(historiaClinicaId, 'contrato', data)
-    if (!completeData) return null
     
     return insertedData
   } catch (error) {
@@ -279,26 +320,20 @@ export async function saveConsentimiento(data: any, historiaClinicaId: string) {
       ciudad_autorizacion: data.ciudadAutorizacion
     }
     
-    const { data: existingConsentimiento } = await supabase
-      .from('consentimientos')
-      .select('id')
-      .eq('historia_clinica_id', historiaClinicaId)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
+    const workflowToken = getWorkflowToken()
+    if (!workflowToken) return null
 
-    const consentimientoQuery = existingConsentimiento
-      ? supabase.from('consentimientos').update(consentimientoData).eq('id', existingConsentimiento.id)
-      : supabase.from('consentimientos').insert([consentimientoData])
-    const { data: insertedData, error } = await consentimientoQuery.select().single()
+    const { data: insertedData, error } = await supabase.rpc('guardar_consentimiento_flujo', {
+      p_historia_id: historiaClinicaId,
+      p_token: workflowToken,
+      p_consentimiento: consentimientoData,
+      p_datos: data,
+    })
     
     if (error) {
       console.error('Error al guardar consentimiento:', error)
       return null
     }
-
-    const completeData = await updateHistoriaClinicaSection(historiaClinicaId, 'consentimiento', data)
-    if (!completeData) return null
     
     return insertedData
   } catch (error) {

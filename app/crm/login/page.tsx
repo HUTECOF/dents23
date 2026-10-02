@@ -9,44 +9,57 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Lock, User, Eye, EyeOff, AlertCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
+import { supabase } from "@/lib/supabase"
+import { CRM_DOCTORS } from "@/lib/crm-doctors"
 
 export default function CRMLoginPage() {
   const router = useRouter()
   const [formData, setFormData] = useState({
-    usuario: "",
+    doctorSlug: "",
     password: ""
   })
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
-  // Credenciales del sistema
-  const CREDENTIALS = {
-    usuario: "Dr Erick Mancilla",
-    password: "dents23"
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
     setLoading(true)
 
-    // Simular delay de autenticación
-    await new Promise(resolve => setTimeout(resolve, 800))
-
-    // Validar credenciales
-    if (formData.usuario === CREDENTIALS.usuario && formData.password === CREDENTIALS.password) {
-      // Guardar sesión en localStorage
-      localStorage.setItem("crm_authenticated", "true")
-      localStorage.setItem("crm_user", formData.usuario)
-      localStorage.setItem("crm_login_time", new Date().toISOString())
-      
-      // Redirigir al CRM
-      router.push("/crm/pacientes")
-    } else {
-      setError("Usuario o contraseña incorrectos")
+    const doctor = CRM_DOCTORS.find((item) => item.slug === formData.doctorSlug)
+    if (!doctor) {
+      setError("Seleccione una cuenta de médico")
       setLoading(false)
+      return
     }
+
+    const { data, error: authError } = await supabase.auth.signInWithPassword({
+      email: doctor.email,
+      password: formData.password,
+    })
+
+    if (authError || !data.user) {
+      setError("Cuenta o contraseña incorrecta")
+      setLoading(false)
+      return
+    }
+
+    const { data: profile, error: profileError } = await supabase
+      .from("crm_medicos")
+      .select("id")
+      .eq("id", data.user.id)
+      .eq("activo", true)
+      .single()
+
+    if (profileError || !profile) {
+      await supabase.auth.signOut()
+      setError("La cuenta no está vinculada o está desactivada")
+      setLoading(false)
+      return
+    }
+
+    router.push("/crm/pacientes")
   }
 
   return (
@@ -91,37 +104,41 @@ export default function CRMLoginPage() {
 
               {/* Usuario */}
               <div className="space-y-2">
-                <Label htmlFor="usuario" className="text-base font-semibold text-gray-700">
-                  Usuario
+                <Label htmlFor="doctorSlug" className="text-base font-semibold text-gray-700">
+                  Cuenta médica
                 </Label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <Input
-                    id="usuario"
-                    type="text"
-                    value={formData.usuario}
-                    onChange={(e) => setFormData({ ...formData, usuario: e.target.value })}
-                    placeholder="Ingrese su usuario"
-                    className="pl-10 h-12 text-base border-2 focus:border-teal-500"
+                  <select
+                    id="doctorSlug"
+                    value={formData.doctorSlug}
+                    onChange={(e) => setFormData({ ...formData, doctorSlug: e.target.value })}
+                    className="h-12 w-full rounded-md border-2 bg-white pl-10 pr-3 text-base focus:border-teal-500 focus:outline-none"
                     required
                     autoComplete="username"
-                  />
+                  >
+                    <option value="">Seleccione su cuenta</option>
+                    {CRM_DOCTORS.map((doctor) => (
+                      <option key={doctor.slug} value={doctor.slug}>{doctor.name}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
               {/* Contraseña */}
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-base font-semibold text-gray-700">
-                  Contraseña
+                  Contraseña segura del CRM
                 </Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
+                    minLength={12}
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    placeholder="Ingrese su contraseña"
+                    placeholder="Contraseña de al menos 12 caracteres"
                     className="pl-10 pr-10 h-12 text-base border-2 focus:border-teal-500"
                     required
                     autoComplete="current-password"
@@ -143,7 +160,7 @@ export default function CRMLoginPage() {
               {/* Botón de Login */}
               <Button
                 type="submit"
-                disabled={loading || !formData.usuario || !formData.password}
+                disabled={loading || !formData.doctorSlug || formData.password.length < 12}
                 className="w-full h-12 text-base font-semibold bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 disabled:opacity-50"
               >
                 {loading ? (
@@ -159,7 +176,7 @@ export default function CRMLoginPage() {
               {/* Info adicional */}
               <div className="text-center pt-4">
                 <p className="text-xs text-gray-500">
-                  Sistema protegido - Acceso solo para personal autorizado
+                  Use su contraseña segura del CRM. El NIP para asignar expedientes es distinto.
                 </p>
               </div>
             </form>

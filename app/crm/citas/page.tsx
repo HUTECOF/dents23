@@ -74,10 +74,12 @@ export default function CitasPage() {
 
   // Verificar autenticación
   useEffect(() => {
-    if (!isAuthenticated()) {
-      router.push('/crm/login')
+    const verifyAuthentication = async () => {
+      if (!(await isAuthenticated())) router.push('/crm/login')
     }
-  }, [])
+
+    verifyAuthentication()
+  }, [router])
   const [pacienteSeleccionado, setPacienteSeleccionado] = useState<any | null>(null)
   const [notasSeguimiento, setNotasSeguimiento] = useState('')
   const [diagnostico, setDiagnostico] = useState('')

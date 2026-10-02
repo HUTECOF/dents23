@@ -103,6 +103,7 @@ class PatientDataStore {
       localStorage.removeItem('contrato')
       localStorage.removeItem('consentimiento')
       localStorage.removeItem('historiaClinicaId')
+      localStorage.removeItem('historiaClinicaWorkflowToken')
     }
   }
 }

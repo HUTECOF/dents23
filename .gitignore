@@ -21,6 +21,8 @@ yarn-error.log*
 
 # env files
 .env*
+/scripts/*.local.sql
+/scripts/*.sql.example
 
 # vercel
 .vercel

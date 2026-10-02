@@ -163,12 +163,22 @@ export default function Odontograma({ value, onChange, notasMedico, onNotasMedic
     })
   }
 
-  const applyLimpiezaAll = () => {
+  const allHaveLimpieza = ALL_TEETH.every(n => getTratamientos(n).includes("LIMPIEZA"))
+
+  const toggleLimpiezaAll = () => {
     const newDientes: OdontogramaData["dientes"] = { ...value.dientes }
     ALL_TEETH.forEach(n => {
       const current = newDientes[n]?.tratamientos ?? []
-      if (!current.includes("LIMPIEZA")) {
-        newDientes[n] = { numero: n, tratamientos: [...current, "LIMPIEZA"] }
+      const tratamientos: TratamientoDiente[] = allHaveLimpieza
+        ? current.filter(tratamiento => tratamiento !== "LIMPIEZA")
+        : current.includes("LIMPIEZA")
+          ? current
+          : [...current, "LIMPIEZA"]
+
+      if (tratamientos.length > 0) {
+        newDientes[n] = { numero: n, tratamientos }
+      } else {
+        delete newDientes[n]
       }
     })
     onChange({ dientes: newDientes })
@@ -210,21 +220,28 @@ export default function Odontograma({ value, onChange, notasMedico, onNotasMedic
             {activeTx === t.id ? "✓ " : ""}{t.label}
           </button>
         ))}
-        <button
-          type="button"
-          onClick={applyLimpiezaAll}
-          title="Aplica LIMPIEZA a todos los dientes"
-          className="px-3 py-1.5 rounded-full text-xs font-bold border-2 border-green-400 text-green-700 bg-green-50 hover:bg-green-100 transition-all"
-        >
-          🦷 LIMPIEZA a todos
-        </button>
-        <button
-          type="button"
-          onClick={clearAll}
-          className="px-3 py-1.5 rounded-full text-xs font-bold border-2 border-gray-300 text-gray-500 hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-all"
-        >
-          🗑 Limpiar todo
-        </button>
+        <div className="inline-flex shrink-0 items-center gap-2">
+          <button
+            type="button"
+            onClick={toggleLimpiezaAll}
+            title={allHaveLimpieza ? "Quita LIMPIEZA de todos los dientes" : "Aplica LIMPIEZA a todos los dientes"}
+            aria-pressed={allHaveLimpieza}
+            className={`px-3 py-1.5 rounded-full text-xs font-bold border-2 transition-all ${
+              allHaveLimpieza
+                ? "border-green-600 bg-green-600 text-white hover:bg-green-700"
+                : "border-green-400 text-green-700 bg-green-50 hover:bg-green-100"
+            }`}
+          >
+            {allHaveLimpieza ? "✓ LIMPIEZA en todos" : "🦷 LIMPIEZA a todos"}
+          </button>
+          <button
+            type="button"
+            onClick={clearAll}
+            className="px-3 py-1.5 rounded-full text-xs font-bold border-2 border-gray-300 text-gray-500 hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-all"
+          >
+            🗑 Limpiar todo
+          </button>
+        </div>
       </div>
 
       <p className="text-center text-[11px] text-gray-500">

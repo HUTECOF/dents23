@@ -18,12 +18,11 @@ import { TipoPacienteSelector } from "@/components/tipo-paciente-selector"
 import { LegalNotices } from "@/components/legal-notices"
 import VideoIntro from "@/components/video-intro-simple"
 import { alertSystem } from "@/lib/alert-system"
-import { saveHistoriaClinica } from "@/lib/supabase-helpers"
+import { identifyDoctorByNip, saveHistoriaClinica } from "@/lib/supabase-helpers"
 import { patientDataStore } from "@/lib/patient-data-store"
 import Odontograma, { OdontogramaData, generateTratamientoText } from "@/components/odontograma"
 import SignaturePhotoCapture from "@/components/signature-photo-capture"
 
-const NIP_CODE = "0015"
 const EMPTY_ODONTOGRAMA: OdontogramaData = { dientes: {} }
 
 export default function HistoriaClinicaNueva() {
@@ -59,6 +58,8 @@ export default function HistoriaClinicaNueva() {
   const [nipValue, setNipValue] = useState("")
   const [nipVerified, setNipVerified] = useState(false)
   const [nipError, setNipError] = useState("")
+  const [assignedDoctorName, setAssignedDoctorName] = useState("")
+  const [validatingNip, setValidatingNip] = useState(false)
   const [loadedDraft, setLoadedDraft] = useState(false)
   const [colorMode, setColorMode] = useState<"light" | "dark">("dark")
   
@@ -76,7 +77,7 @@ export default function HistoriaClinicaNueva() {
     domicilioSucursales: "",
     telefonoSucursales: "",
     mediosContactoSucursales: "",
-    odontologoTratante: "Erick Alejandro Mancilla Elijo",
+    odontologoTratante: "",
     cedulaProfesional: "",
     ssGto: "",
     consultorioAtencion: "" as "Punto Escobedo" | "MAC" | "Delta" | "Charly" | "Otro" | "",
@@ -375,11 +376,6 @@ export default function HistoriaClinicaNueva() {
         if (parsed.planTratamiento) setPlanTratamiento(parsed.planTratamiento)
         if (typeof parsed.currentSection === "number") setCurrentSection(parsed.currentSection)
       }
-
-      const storedNipVerified = localStorage.getItem("historiaClinicaNipVerified")
-      const storedNipValue = localStorage.getItem("historiaClinicaNipValue")
-      if (storedNipVerified === "true") setNipVerified(true)
-      if (storedNipValue) setNipValue(storedNipValue)
     } catch (error) {
       console.error("Error al cargar borrador:", error)
     } finally {
@@ -400,12 +396,10 @@ export default function HistoriaClinicaNueva() {
         planTratamiento,
         currentSection,
       }))
-      localStorage.setItem("historiaClinicaNipVerified", nipVerified ? "true" : "false")
-      localStorage.setItem("historiaClinicaNipValue", nipValue)
     } catch (error) {
       console.error("Error al guardar borrador:", error)
     }
-  }, [formData, odontogramaData, odontogramaFinalData, notasMedico, notasOdontogramaFinal, planTratamiento, currentSection, nipVerified, nipValue, loadedDraft])
+  }, [formData, odontogramaData, odontogramaFinalData, notasMedico, notasOdontogramaFinal, planTratamiento, currentSection, loadedDraft])
 
   const sections = [
     { title: "Datos del Consultorio", icon: MapPin },
@@ -677,7 +671,7 @@ export default function HistoriaClinicaNueva() {
 
                       <div className="space-y-2">
                         <Label htmlFor="odontologoTratante" className="text-base font-semibold">Odontólogo tratante</Label>
-                        <Input id="odontologoTratante" value={formData.odontologoTratante} onChange={(e) => handleInputChange("odontologoTratante", e.target.value)} className="h-12" />
+                        <Input id="odontologoTratante" value={formData.odontologoTratante} placeholder="Se asignará con el NIP al finalizar" className="h-12" readOnly />
                       </div>
 
                       <div className="space-y-2">
@@ -3425,22 +3419,7 @@ export default function HistoriaClinicaNueva() {
                           </div>
 
                           {/* Tipo + Folio + Fecha */}
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-3 sm:px-4 py-2 bg-gray-100 border-b border-gray-300">
-                            <div className="flex flex-wrap gap-3">
-                              {(["interna", "externa"] as const).map(tipo => (
-                                <label key={tipo} className="flex items-center gap-1 cursor-pointer font-semibold uppercase text-xs">
-                                  <input
-                                    type="radio"
-                                    name="tipoPlan"
-                                    value={tipo}
-                                    checked={planTratamiento.tipoPlan === tipo}
-                                    onChange={() => setPlanTratamiento(p => ({ ...p, tipoPlan: tipo, semanas: tipo === "interna" ? 18 : 52 }))}
-                                    className="accent-gray-800"
-                                  />
-                                  SERVICIO {tipo.toUpperCase()}
-                                </label>
-                              ))}
-                            </div>
+                          <div className="flex justify-end px-3 sm:px-4 py-2 bg-gray-100 border-b border-gray-300">
                             <div className="flex items-center gap-2 text-xs">
                               <span className="font-bold">FOLIO:</span>
                               <input
@@ -4089,21 +4068,25 @@ export default function HistoriaClinicaNueva() {
                       <p className="text-slate-500 mt-2 text-sm">Último paso - seleccione su tipo</p>
                     </motion.div>
                     <div className="bg-white border-2 border-teal-300 rounded-lg p-6 shadow-sm">
-                      <h3 className="font-bold text-xl text-teal-900 mb-2 text-center">🔐 Ingrese NIP para continuar</h3>
-                      <p className="text-sm text-teal-700 text-center mb-4">Después de llenar la Historia Clínica, ingrese el NIP para desbloquear la selección de tipo de paciente.</p>
+                      <h3 className="font-bold text-xl text-teal-900 mb-2 text-center">🔐 NIP del odontólogo responsable</h3>
+                      <p className="text-sm text-teal-700 text-center mb-4">Ingrese el NIP personal del médico que atenderá al paciente. Al validarlo, se asignará el expediente a ese médico y se habilitará el tipo de paciente. No es la contraseña del CRM.</p>
                       
                       <div className="flex flex-col md:flex-row items-center gap-3">
                         <Input
                           type="password"
                           inputMode="numeric"
+                          minLength={6}
                           maxLength={8}
                           value={nipValue}
                           onChange={(e) => {
-                            setNipValue(e.target.value)
+                            setNipValue(e.target.value.replace(/\D/g, ""))
+                            setNipVerified(false)
+                            setAssignedDoctorName("")
                             if (nipError) setNipError("")
                           }}
-                          placeholder="Ej. 0015"
+                          placeholder="NIP del médico"
                           className="md:flex-1 text-lg text-center"
+                          autoComplete="off"
                         />
                         {nipVerified ? (
                           <Button
@@ -4112,33 +4095,42 @@ export default function HistoriaClinicaNueva() {
                             onClick={() => {
                               setNipVerified(false)
                               setNipValue("")
+                              setAssignedDoctorName("")
                             }}
                           >
-                            Cambiar NIP
+                            Cambiar médico
                           </Button>
                         ) : (
                           <Button
                             type="button"
-                            onClick={() => {
-                              if (nipValue.trim() === NIP_CODE) {
+                            disabled={validatingNip || nipValue.length < 6}
+                            onClick={async () => {
+                              setValidatingNip(true)
+                              const doctor = await identifyDoctorByNip(nipValue)
+                              setValidatingNip(false)
+
+                              if (doctor) {
                                 setNipVerified(true)
+                                setAssignedDoctorName(doctor.nombre)
+                                handleInputChange("odontologoTratante", doctor.nombre)
                                 setNipError("")
                               } else {
                                 setNipVerified(false)
-                                setNipError("NIP incorrecto. Intente nuevamente.")
+                                setAssignedDoctorName("")
+                                setNipError("NIP incorrecto o cuenta médica inactiva.")
                               }
                             }}
                             className="bg-gradient-to-r from-[#0891B2] to-[#0E7490] hover:from-[#0E7490] hover:to-[#155E75]"
                           >
-                            Validar NIP
+                            {validatingNip ? "Validando..." : "Validar NIP"}
                           </Button>
                         )}
                       </div>
 
                       <div className="mt-2 text-center">
-                        {nipVerified && <p className="text-green-700 font-semibold">✅ NIP correcto. Puede seleccionar el tipo de paciente.</p>}
+                        {nipVerified && <p className="text-green-700 font-semibold">NIP correcto. Expediente asignado a {assignedDoctorName}.</p>}
                         {!nipVerified && nipError && <p className="text-red-600 font-semibold">{nipError}</p>}
-                        {!nipVerified && !nipError && <p className="text-gray-600 text-sm">NIP de ejemplo permitido: <span className="font-semibold">0015</span></p>}
+                        {!nipVerified && !nipError && <p className="text-gray-600 text-sm">El NIP identifica al médico responsable del expediente.</p>}
                       </div>
                     </div>
 
@@ -4207,7 +4199,7 @@ export default function HistoriaClinicaNueva() {
                               notasMedico,
                               notasOdontogramaFinal,
                               planTratamiento,
-                            })
+                            }, nipValue)
                             
                             if (savedHistoria) {
                               console.log('✅ Historia Clínica guardada en Supabase:', savedHistoria.id)
@@ -4228,14 +4220,13 @@ export default function HistoriaClinicaNueva() {
                               // También guardar en localStorage como respaldo
                               localStorage.setItem('historiaClinicaData', JSON.stringify(expedienteCompleto))
                               localStorage.setItem('historiaClinicaId', savedHistoria.id)
+                              localStorage.setItem('historiaClinicaWorkflowToken', savedHistoria.workflow_token)
                               localStorage.setItem('tipoPaciente', formData.tipoPaciente)
                               localStorage.setItem('planTratamiento', JSON.stringify(planTratamiento))
                               localStorage.setItem('notasMedico', notasMedico)
                               localStorage.setItem('odontogramaFinalData', JSON.stringify(odontogramaFinalData))
                               localStorage.setItem('notasOdontogramaFinal', notasOdontogramaFinal)
                               localStorage.removeItem('historiaClinicaDraft')
-                              localStorage.removeItem('historiaClinicaNipVerified')
-                              localStorage.removeItem('historiaClinicaNipValue')
                               
                               // Redirigir según el tipo de paciente
                               switch (formData.tipoPaciente) {

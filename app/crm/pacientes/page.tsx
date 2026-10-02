@@ -77,12 +77,16 @@ export default function PacientesPage() {
 
   // Verificar autenticación al cargar
   useEffect(() => {
-    if (!isAuthenticated()) {
-      router.push('/crm/login')
-    } else {
-      setAuthenticatedUser(getAuthenticatedUser())
+    const verifyAuthentication = async () => {
+      if (!(await isAuthenticated())) {
+        router.push('/crm/login')
+        return
+      }
+      setAuthenticatedUser(await getAuthenticatedUser())
     }
-  }, [])
+
+    verifyAuthentication()
+  }, [router])
 
   // Cargar datos desde Supabase
   const fetchData = async () => {
@@ -464,8 +468,8 @@ export default function PacientesPage() {
               variant="outline" 
               size="sm"
               className="shrink-0"
-              onClick={() => {
-                logout()
+              onClick={async () => {
+                await logout()
                 router.push('/crm/login')
               }}
             >

@@ -1,24 +1,42 @@
-// Helpers para autenticación del CRM
+import { supabase } from './supabase'
 
-export function isAuthenticated(): boolean {
-  if (typeof window === 'undefined') return false
-  return localStorage.getItem('crm_authenticated') === 'true'
+export interface AuthenticatedDoctor {
+  id: string
+  nombre: string
+  slug: string
+  email: string
 }
 
-export function getAuthenticatedUser(): string | null {
-  if (typeof window === 'undefined') return null
-  return localStorage.getItem('crm_user')
+export async function getAuthenticatedDoctor(): Promise<AuthenticatedDoctor | null> {
+  const { data: sessionData } = await supabase.auth.getSession()
+  const user = sessionData.session?.user
+  if (!user) return null
+
+  const { data: doctor, error } = await supabase
+    .from('crm_medicos')
+    .select('id, nombre, slug, email')
+    .eq('id', user.id)
+    .eq('activo', true)
+    .single()
+
+  if (error || !doctor) return null
+  return doctor as AuthenticatedDoctor
 }
 
-export function logout(): void {
-  if (typeof window === 'undefined') return
-  localStorage.removeItem('crm_authenticated')
-  localStorage.removeItem('crm_user')
-  localStorage.removeItem('crm_login_time')
+export async function isAuthenticated(): Promise<boolean> {
+  return Boolean(await getAuthenticatedDoctor())
 }
 
-export function checkAuthAndRedirect(router: any): boolean {
-  if (!isAuthenticated()) {
+export async function getAuthenticatedUser(): Promise<string | null> {
+  return (await getAuthenticatedDoctor())?.nombre || null
+}
+
+export async function logout(): Promise<void> {
+  await supabase.auth.signOut()
+}
+
+export async function checkAuthAndRedirect(router: { push: (path: string) => void }): Promise<boolean> {
+  if (!(await isAuthenticated())) {
     router.push('/crm/login')
     return false
   }

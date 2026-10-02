@@ -72,10 +72,12 @@ export default function CRMDashboard() {
 
   // Verificar autenticación
   useEffect(() => {
-    if (!isAuthenticated()) {
-      router.push('/crm/login')
+    const verifyAuthentication = async () => {
+      if (!(await isAuthenticated())) router.push('/crm/login')
     }
-  }, [])
+
+    verifyAuthentication()
+  }, [router])
 
   // Cargar datos desde Supabase
   const fetchData = async () => {

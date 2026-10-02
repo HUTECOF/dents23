@@ -31,6 +31,7 @@ import { NuevaCitaDialog } from "@/components/nueva-cita-dialog"
 import { NuevoPagoDialog } from "@/components/nuevo-pago-dialog"
 import { NuevoTratamientoDialog } from "@/components/nuevo-tratamiento-dialog"
 import { ExpedienteCompleto } from "@/components/expediente-completo"
+import { isAuthenticated } from "@/lib/auth-helpers"
 
 function SiNoItem({ label, value, detail }: { label: string; value?: string; detail?: string }) {
   if (!value) return null
@@ -57,13 +58,19 @@ export default function PacienteDetallesPage() {
   const [pacienteId, setPacienteId] = useState<string>('')
 
   useEffect(() => {
-    // Obtener ID de query params
-    const params = new URLSearchParams(window.location.search)
-    const id = params.get('id')
-    if (id) {
-      setPacienteId(id)
+    const initializePage = async () => {
+      if (!(await isAuthenticated())) {
+        router.push('/crm/login')
+        return
+      }
+
+      const params = new URLSearchParams(window.location.search)
+      const id = params.get('id')
+      if (id) setPacienteId(id)
     }
-  }, [])
+
+    initializePage()
+  }, [router])
 
   const [paciente, setPaciente] = useState<any>(null)
   const [historiaClinica, setHistoriaClinica] = useState<any>(null)

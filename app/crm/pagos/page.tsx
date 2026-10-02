@@ -54,10 +54,12 @@ export default function PagosPage() {
 
   // Verificar autenticación
   useEffect(() => {
-    if (!isAuthenticated()) {
-      router.push('/crm/login')
+    const verifyAuthentication = async () => {
+      if (!(await isAuthenticated())) router.push('/crm/login')
     }
-  }, [])
+
+    verifyAuthentication()
+  }, [router])
   const [selectedPlan, setSelectedPlan] = useState<any | null>(null)
   const [editPlanData, setEditPlanData] = useState({
     monto_total: '',
