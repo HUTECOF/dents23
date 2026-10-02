@@ -24,9 +24,7 @@ import {
   CreditCard,
   Stethoscope,
   RefreshCw,
-  LogOut,
 } from "lucide-react"
-import Link from "next/link"
 import { NuevaCitaDialog } from "@/components/nueva-cita-dialog"
 import { NuevoPagoDialog } from "@/components/nuevo-pago-dialog"
 import { NuevoTratamientoDialog } from "@/components/nuevo-tratamiento-dialog"
@@ -45,8 +43,8 @@ function SiNoItem({ label, value, detail }: { label: string; value?: string; det
         </Badge>
       </div>
       {isYes && detail && (
-        <div className="p-3 bg-yellow-500/10 border border-yellow-200 rounded-lg">
-          <p className="text-sm text-yellow-700">{detail}</p>
+        <div className="p-3 bg-sky-500/10 border border-sky-200 rounded-lg">
+          <p className="text-sm text-sky-700">{detail}</p>
         </div>
       )}
     </div>
@@ -196,40 +194,34 @@ export default function PacienteDetallesPage() {
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-6 bg-background">
+    <div className="p-4 sm:p-7 lg:p-9">
       {/* Header */}
-      <div className="max-w-7xl mx-auto mb-6">
-        <div className="flex gap-2 mb-4">
+      <div className="mx-auto mb-6 max-w-7xl">
+        <div className="mb-4 flex gap-2">
           <Button
             variant="ghost"
             onClick={() => router.push('/crm/pacientes')}
+            className="rounded-xl text-[#50716c] hover:bg-white"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Volver a Pacientes
           </Button>
-          <Link href="/">
-            <Button 
-              variant="outline" 
-              size="sm"
-            >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline ml-2">Salir</span>
-            </Button>
-          </Link>
         </div>
 
-        <Card className="bg-gradient-to-r from-medical-teal/10 to-cyan-50/50">
-          <CardContent className="p-6">
+        <Card className="relative overflow-hidden rounded-[28px] border-0 bg-[#143b3d] text-white shadow-[0_24px_65px_rgba(18,57,59,.16)]">
+          <div className="absolute -right-14 -top-20 h-60 w-60 rounded-full border-[38px] border-[#8dd8ff]/15" />
+          <CardContent className="relative p-6 sm:p-8">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
               {/* Avatar */}
-              <div className="w-24 h-24 rounded-full bg-medical-teal/20 flex items-center justify-center text-3xl font-bold text-medical-teal">
+              <div className="flex h-20 w-20 items-center justify-center rounded-[24px] bg-[#8dd8ff] text-2xl font-bold text-[#12313d] shadow-xl shadow-black/10 sm:h-24 sm:w-24 sm:text-3xl">
                 {paciente.nombre_completo?.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
               </div>
 
               {/* Info Principal */}
               <div className="flex-1">
-                <h1 className="text-3xl font-bold mb-2">{paciente.nombre_completo}</h1>
-                <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                <p className="mb-2 text-[10px] font-bold uppercase tracking-[.2em] text-teal-200/65">Expediente integral</p>
+                <h1 className="mb-2 text-3xl font-semibold tracking-[-.04em]">{paciente.nombre_completo}</h1>
+                <div className="flex flex-wrap gap-4 text-sm text-white/55">
                   {paciente.telefono && (
                     <div className="flex items-center gap-2">
                       <Phone className="w-4 h-4" />
@@ -250,10 +242,10 @@ export default function PacienteDetallesPage() {
                   )}
                 </div>
                 <div className="flex gap-2 mt-3">
-                  <Badge className="bg-green-500/10 text-green-600 border-green-200">
+                  <Badge className="border-emerald-300/20 bg-emerald-300/10 text-emerald-200">
                     {paciente.estado}
                   </Badge>
-                  <Badge variant="outline">
+                  <Badge variant="outline" className="border-white/15 text-white/70">
                     Prioridad: {paciente.prioridad || 'Media'}
                   </Badge>
                 </div>
@@ -263,7 +255,7 @@ export default function PacienteDetallesPage() {
               <div className="flex gap-2">
                 <Button 
                   onClick={() => setIsCitaDialogOpen(true)}
-                  className="bg-medical-teal hover:bg-medical-teal/90"
+                  className="h-11 rounded-2xl bg-[#8dd8ff] px-5 font-semibold text-[#12313d] hover:bg-[#b4e7ff]"
                 >
                   <Calendar className="w-4 h-4 mr-2" />
                   Nueva Cita
@@ -275,9 +267,9 @@ export default function PacienteDetallesPage() {
       </div>
 
       {/* Tabs con información */}
-      <div className="max-w-7xl mx-auto">
+      <div className="mx-auto max-w-7xl">
         <Tabs defaultValue="general" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-[18px] border border-[#dce8e3] bg-white p-1.5 shadow-sm sm:grid-cols-5">
             <TabsTrigger value="general">General</TabsTrigger>
             <TabsTrigger value="citas">Citas ({citas.length})</TabsTrigger>
             <TabsTrigger value="pagos">Pagos ({pagos.length})</TabsTrigger>
@@ -461,7 +453,7 @@ export default function PacienteDetallesPage() {
                         </Badge>
                       )}
                       {contrato.pago_efectivo && (
-                        <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-200">
+                        <Badge className="bg-sky-500/10 text-sky-600 border-sky-200">
                           💵 Pago en Efectivo
                         </Badge>
                       )}
@@ -823,8 +815,8 @@ export default function PacienteDetallesPage() {
                           </Badge>
                         </div>
                         {historiaClinica.hospitalizado === 'si' && historiaClinica.hospitalizadoCual && (
-                          <div className="md:col-span-2 p-3 bg-yellow-500/10 border border-yellow-200 rounded-lg">
-                            <p className="text-sm font-medium text-yellow-600">Motivo:</p>
+                          <div className="md:col-span-2 p-3 bg-sky-500/10 border border-sky-200 rounded-lg">
+                            <p className="text-sm font-medium text-sky-600">Motivo:</p>
                             <p className="text-sm">{historiaClinica.hospitalizadoCual}</p>
                           </div>
                         )}

@@ -382,7 +382,7 @@ export default function CitasPage() {
       programada: "bg-blue-500/10 text-blue-400 border-blue-500/20",
       completada: "bg-green-500/10 text-green-400 border-green-500/20",
       cancelada: "bg-red-500/10 text-red-400 border-red-500/20",
-      "en-proceso": "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
+      "en-proceso": "bg-sky-500/10 text-sky-600 border-sky-500/20",
     }
 
     return variants[estado as keyof typeof variants] || "bg-gray-500/10 text-gray-400 border-gray-500/20"
@@ -391,7 +391,7 @@ export default function CitasPage() {
   const getPrioridadBadge = (prioridad: string) => {
     const variants = {
       alta: "bg-red-500/10 text-red-400 border-red-500/20",
-      media: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
+      media: "bg-sky-500/10 text-sky-600 border-sky-500/20",
       baja: "bg-green-500/10 text-green-400 border-green-500/20",
     }
 
@@ -477,7 +477,7 @@ export default function CitasPage() {
       title: "Media Prioridad",
       value: seguimientos.filter((s) => s.prioridad === "media").length,
       icon: Clock,
-      color: "text-yellow-400",
+      color: "text-sky-500",
     },
     {
       title: "Baja Prioridad",
@@ -488,12 +488,12 @@ export default function CitasPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="p-4 text-foreground sm:p-7 lg:p-9">
       {/* Header */}
-      <div className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-40">
+      <div className="overflow-hidden rounded-[24px] border border-[#dce8e3] bg-white shadow-[0_18px_50px_rgba(31,70,65,.055)]">
         <div className="flex flex-col gap-3 px-4 sm:px-6 py-3 sm:py-0 sm:flex-row sm:h-16 sm:items-center">
           <div className="flex items-center gap-2 sm:gap-3">
-            <Link href="/crm">
+            <Link href="/crm" className="hidden">
               <Button variant="ghost" size="sm">
                 <ArrowLeft className="w-4 h-4" />
                 <span className="hidden sm:inline ml-2">Volver</span>
@@ -558,7 +558,7 @@ export default function CitasPage() {
               )}
             </div>
 
-            <Link href="/">
+            <Link href="/" className="hidden">
               <Button 
                 variant="outline" 
                 size="sm"
@@ -571,7 +571,7 @@ export default function CitasPage() {
 
             <Button 
               onClick={() => setIsNewCitaDialogOpen(true)}
-              className="bg-medical-teal hover:bg-medical-teal/90 w-full sm:w-auto"
+              className="w-full rounded-xl bg-[#173b3d] hover:bg-[#205154] sm:w-auto"
             >
               <Plus className="w-4 h-4 sm:mr-2" />
               <span className="hidden sm:inline">{selectedView === "citas" ? "Nueva Cita" : "Nuevo Seguimiento"}</span>
@@ -581,7 +581,7 @@ export default function CitasPage() {
         </div>
       </div>
 
-      <div className="p-4 sm:p-6">
+      <div className="pt-5">
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
           {statsData.map((stat, index) => (
@@ -591,7 +591,7 @@ export default function CitasPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
             >
-              <Card className="bg-card/50 border-border/50">
+              <Card className="rounded-[22px] border-[#dce8e3] bg-white shadow-[0_12px_35px_rgba(31,70,65,.04)]">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
                     <div className={`p-2 rounded-lg bg-background/50 ${stat.color}`}>
@@ -609,7 +609,7 @@ export default function CitasPage() {
         </div>
 
         {/* Lista Principal */}
-        <Card className="bg-card/50 border-border/50 backdrop-blur-sm">
+        <Card className="rounded-[24px] border-[#dce8e3] bg-white shadow-[0_18px_50px_rgba(31,70,65,.055)]">
           <CardHeader>
             <CardTitle>{selectedView === "citas" ? "Lista de Citas" : "Lista de Seguimientos"}</CardTitle>
             <CardDescription>

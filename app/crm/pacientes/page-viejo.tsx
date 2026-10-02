@@ -116,7 +116,7 @@ export default function PacientesPage() {
   const getEstadoBadge = (estado: string) => {
     const variants = {
       nuevo: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-      "en-tratamiento": "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
+      "en-tratamiento": "bg-sky-500/10 text-sky-600 border-sky-500/20",
       activo: "bg-green-500/10 text-green-400 border-green-500/20",
       recuperacion: "bg-purple-500/10 text-purple-400 border-purple-500/20",
       pendiente: "bg-orange-500/10 text-orange-400 border-orange-500/20",
@@ -233,8 +233,8 @@ export default function PacientesPage() {
           <Card className="bg-card/50 border-border/50">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-yellow-500/10">
-                  <Users className="w-5 h-5 text-yellow-400" />
+                <div className="p-2 rounded-lg bg-sky-500/10">
+                  <Users className="w-5 h-5 text-sky-600" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">En Tratamiento</p>
