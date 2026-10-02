@@ -82,32 +82,35 @@ export default function ConsentimientoPage() {
       
       // Guardar en Supabase
       const historiaClinicaId = patientDataStore.getHistoriaClinicaId()
-      if (historiaClinicaId) {
-        const savedConsentimiento = await saveConsentimiento(formData, historiaClinicaId)
-        if (savedConsentimiento) {
-          console.log("✅ Consentimiento guardado en Supabase")
-          console.log("🎉 Expediente completo guardado en Supabase!")
-          
-          // Actualizar progreso: Consentimiento completado (100%)
-          try {
-            await supabase.rpc('actualizar_progreso_prospecto', {
-              historia_id: historiaClinicaId,
-              paso_actual: 'consentimiento',
-              completado: true
-            })
-            console.log("✅ Progreso actualizado: Consentimiento (100%) - ¡REGISTRO COMPLETO!")
-          } catch (error) {
-            console.error("❌ Error al actualizar progreso:", error)
-          }
-        } else {
-          console.error("❌ Error al guardar consentimiento en Supabase")
-        }
+      if (!historiaClinicaId) {
+        throw new Error("No se encontró la historia clínica asociada")
+      }
+
+      const savedConsentimiento = await saveConsentimiento(formData, historiaClinicaId)
+      if (!savedConsentimiento) {
+        throw new Error("No se pudo guardar el consentimiento completo en Supabase")
+      }
+
+      console.log("✅ Consentimiento guardado en Supabase")
+      console.log("🎉 Expediente completo guardado en Supabase!")
+
+      // Actualizar progreso: Consentimiento completado (100%)
+      try {
+        await supabase.rpc('actualizar_progreso_prospecto', {
+          historia_id: historiaClinicaId,
+          paso_actual: 'consentimiento',
+          completado: true
+        })
+        console.log("✅ Progreso actualizado: Consentimiento (100%) - ¡REGISTRO COMPLETO!")
+      } catch (error) {
+        console.error("❌ Error al actualizar progreso:", error)
       }
       
       // Mostrar animación de verificación
       setShowVerification(true)
     } catch (error) {
       console.error("Error al enviar consentimiento:", error)
+      alert(error instanceof Error ? error.message : "No se pudo guardar el consentimiento en el CRM")
       setIsSubmitting(false)
     }
   }

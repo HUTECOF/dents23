@@ -68,6 +68,10 @@ export interface HistoriaClinica {
 
   // Datos completos de la historia clínica (Fases 3-5)
   datos_completos?: any
+  odontograma?: any
+  notas_medico?: string
+  plan_tratamiento?: any
+  updated_at?: string
 }
 
 export interface Contrato {

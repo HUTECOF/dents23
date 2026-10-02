@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { CreditCard, Banknote, Calendar, CheckCircle2, DollarSign } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { patientDataStore } from "@/lib/patient-data-store"
+import { updateHistoriaClinicaSection } from "@/lib/supabase-helpers"
 
 export default function PagosParticular() {
   const router = useRouter()
@@ -30,7 +32,18 @@ export default function PagosParticular() {
       return
     }
 
-    // Guardar en localStorage
+    const historiaClinicaId = patientDataStore.getHistoriaClinicaId()
+    if (!historiaClinicaId) {
+      alert('No se encontró la historia clínica asociada. Regresa al formulario clínico e inténtalo nuevamente.')
+      return
+    }
+
+    const savedSection = await updateHistoriaClinicaSection(historiaClinicaId, 'pagoParticular', formData)
+    if (!savedSection) {
+      alert('No se pudo guardar la información del pago en el CRM.')
+      return
+    }
+
     localStorage.setItem('pagosParticular', JSON.stringify(formData))
     
     setEnviado(true)

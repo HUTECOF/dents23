@@ -30,6 +30,7 @@ import Link from "next/link"
 import { NuevaCitaDialog } from "@/components/nueva-cita-dialog"
 import { NuevoPagoDialog } from "@/components/nuevo-pago-dialog"
 import { NuevoTratamientoDialog } from "@/components/nuevo-tratamiento-dialog"
+import { ExpedienteCompleto } from "@/components/expediente-completo"
 
 function SiNoItem({ label, value, detail }: { label: string; value?: string; detail?: string }) {
   if (!value) return null
@@ -106,9 +107,10 @@ export default function PacienteDetallesPage() {
           .eq('id', pacienteData.historia_clinica_id)
           .single()
         
+        const historiaCapturada = historiaData?.datos_completos?.historiaClinica || historiaData?.datos_completos || {}
         setHistoriaClinica(
           historiaData
-            ? { ...historiaData, ...(historiaData.datos_completos || {}) }
+            ? { ...historiaData, ...historiaCapturada }
             : null
         )
 
@@ -680,6 +682,21 @@ export default function PacienteDetallesPage() {
             <div className="space-y-4">
               {historiaClinica ? (
                 <>
+                  {historiaClinica.datos_completos && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <FileText className="w-5 h-5" />
+                          Expediente completo capturado
+                        </CardTitle>
+                        <CardDescription>Todos los campos y documentos guardados durante el flujo</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <ExpedienteCompleto data={historiaClinica.datos_completos} />
+                      </CardContent>
+                    </Card>
+                  )}
+
                   {/* Datos Personales */}
                   <Card>
                     <CardHeader>

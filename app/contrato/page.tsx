@@ -124,6 +124,18 @@ export default function ContratoPage() {
     }
     setIsExporting(true)
     try {
+      const historiaClinicaId = patientDataStore.getHistoriaClinicaId()
+      if (!historiaClinicaId) {
+        alert("No se encontró la historia clínica asociada. Regresa al formulario clínico e inténtalo nuevamente.")
+        return
+      }
+
+      const savedContrato = await saveContrato(form, historiaClinicaId)
+      if (!savedContrato) {
+        alert("No se pudo guardar el contrato completo en el CRM.")
+        return
+      }
+
       const { default: jsPDF } = await import("jspdf")
       const { default: html2canvas } = await import("html2canvas")
       const el = printRef.current
@@ -144,17 +156,12 @@ export default function ContratoPage() {
       }
       pdf.save("Autorizacion_Consentimiento.pdf")
 
-      // Guardar en Supabase
       try {
-        const historiaClinicaId = patientDataStore.getHistoriaClinicaId()
-        if (historiaClinicaId) {
-          await saveContrato(form, historiaClinicaId)
-          await supabase.rpc('actualizar_progreso_prospecto', {
-            historia_id: historiaClinicaId,
-            paso_actual: 'contrato',
-            completado: true
-          })
-        }
+        await supabase.rpc('actualizar_progreso_prospecto', {
+          historia_id: historiaClinicaId,
+          paso_actual: 'contrato',
+          completado: true
+        })
       } catch (e) { console.error(e) }
 
       setShowSuccess(true)

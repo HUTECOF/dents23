@@ -28,7 +28,9 @@ const EMPTY_ODONTOGRAMA: OdontogramaData = { dientes: {} }
 
 export default function HistoriaClinicaNueva() {
   const [odontogramaData, setOdontogramaData] = useState<OdontogramaData>(EMPTY_ODONTOGRAMA)
+  const [odontogramaFinalData, setOdontogramaFinalData] = useState<OdontogramaData>(EMPTY_ODONTOGRAMA)
   const [notasMedico, setNotasMedico] = useState("")
+  const [notasOdontogramaFinal, setNotasOdontogramaFinal] = useState("")
   const [planTratamiento, setPlanTratamiento] = useState<{
     items: { descripcion: string; cantidad: number; costoUnitario: string; total: string }[]
     tipoPlan: "interna" | "externa" | ""
@@ -284,6 +286,7 @@ export default function HistoriaClinicaNueva() {
     ultimaVisitaDentista: "",
     anestesiaBoca: undefined as "si" | "no" | undefined,
     complicacionAnestesia: undefined as "si" | "no" | undefined,
+    complicacionAnestesiaDetalles: "",
     complicacionVisitaDental: undefined as "si" | "no" | undefined,
     impedimentoAnestesia: undefined as "si" | "no" | undefined,
     otraCondicionMedica: undefined as "si" | "no" | undefined,
@@ -320,6 +323,7 @@ export default function HistoriaClinicaNueva() {
     estudioLaboratorioDetalles: "",
     estudioOtro: undefined as "si" | "no" | undefined,
     estudioOtroDetalles: "",
+    diagnosticoPrimario: "",
 
     // Tipo de Paciente
     tipoPaciente: "" as "charly" | "nomina" | "bancario" | "particular" | "",
@@ -327,6 +331,14 @@ export default function HistoriaClinicaNueva() {
 
   const handleInputChange = (name: string, value: string) => {
     setFormData(prev => ({ ...prev, [name]: value }))
+  }
+
+  const markFieldsAsNo = (fields: string[], detailFields: string[] = []) => {
+    setFormData((previousData) => ({
+      ...previousData,
+      ...Object.fromEntries(fields.map((field) => [field, "no"])),
+      ...Object.fromEntries(detailFields.map((field) => [field, ""])),
+    }))
   }
 
   useEffect(() => {
@@ -356,6 +368,11 @@ export default function HistoriaClinicaNueva() {
       if (stored) {
         const parsed = JSON.parse(stored)
         if (parsed.formData) setFormData((prev) => ({ ...prev, ...parsed.formData }))
+        if (parsed.odontogramaData) setOdontogramaData(parsed.odontogramaData)
+        if (parsed.odontogramaFinalData) setOdontogramaFinalData(parsed.odontogramaFinalData)
+        if (typeof parsed.notasMedico === "string") setNotasMedico(parsed.notasMedico)
+        if (typeof parsed.notasOdontogramaFinal === "string") setNotasOdontogramaFinal(parsed.notasOdontogramaFinal)
+        if (parsed.planTratamiento) setPlanTratamiento(parsed.planTratamiento)
         if (typeof parsed.currentSection === "number") setCurrentSection(parsed.currentSection)
       }
 
@@ -374,13 +391,21 @@ export default function HistoriaClinicaNueva() {
   useEffect(() => {
     if (typeof window === "undefined" || !loadedDraft) return
     try {
-      localStorage.setItem("historiaClinicaDraft", JSON.stringify({ formData, currentSection }))
+      localStorage.setItem("historiaClinicaDraft", JSON.stringify({
+        formData,
+        odontogramaData,
+        odontogramaFinalData,
+        notasMedico,
+        notasOdontogramaFinal,
+        planTratamiento,
+        currentSection,
+      }))
       localStorage.setItem("historiaClinicaNipVerified", nipVerified ? "true" : "false")
       localStorage.setItem("historiaClinicaNipValue", nipValue)
     } catch (error) {
       console.error("Error al guardar borrador:", error)
     }
-  }, [formData, currentSection, nipVerified, nipValue, loadedDraft])
+  }, [formData, odontogramaData, odontogramaFinalData, notasMedico, notasOdontogramaFinal, planTratamiento, currentSection, nipVerified, nipValue, loadedDraft])
 
   const sections = [
     { title: "Datos del Consultorio", icon: MapPin },
@@ -1294,10 +1319,29 @@ export default function HistoriaClinicaNueva() {
 
                     {/* Antecedentes heredofamiliares */}
                     <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-xl p-5 space-y-5">
-                      <h3 className="font-bold text-amber-900 text-lg flex items-center gap-2">
-                        <span className="text-2xl">🧬</span>
-                        Antecedentes heredofamiliares
-                      </h3>
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <h3 className="font-bold text-amber-900 text-lg flex items-center gap-2">
+                          <span className="text-2xl">🧬</span>
+                          Antecedentes heredofamiliares
+                        </h3>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => markFieldsAsNo([
+                            "diabetesHeredofamiliar",
+                            "hipertensionHeredofamiliar",
+                            "cardiovascularesHeredofamiliar",
+                            "coagulacionHeredofamiliar",
+                            "cancerHeredofamiliar",
+                            "hereditariasHeredofamiliar",
+                            "otrasHeredofamiliar",
+                          ], ["heredofamiliarDetalles"])}
+                          className="border-amber-300 bg-white text-amber-800 hover:bg-amber-100"
+                        >
+                          Marcar todos como No
+                        </Button>
+                      </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <ThumbsSelector
@@ -1429,10 +1473,45 @@ export default function HistoriaClinicaNueva() {
 
                     {/* Antecedentes patológicos personales */}
                     <div className="bg-gradient-to-r from-indigo-50 to-blue-50 border-2 border-indigo-200 rounded-xl p-5 space-y-5">
-                      <h3 className="font-bold text-indigo-900 text-lg flex items-center gap-2">
-                        <span className="text-2xl">🩺</span>
-                        Antecedentes patológicos personales
-                      </h3>
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <h3 className="font-bold text-indigo-900 text-lg flex items-center gap-2">
+                          <span className="text-2xl">🩺</span>
+                          Antecedentes patológicos personales
+                        </h3>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => markFieldsAsNo([
+                            "hospitalizado",
+                            "cirugia",
+                            "transfusiones",
+                            "traumatismos",
+                            "cardiopatias",
+                            "respiratorias",
+                            "epilepsia",
+                            "marcapasos",
+                            "protesisValvular",
+                            "bifosfonatos",
+                            "oncologico",
+                          ], [
+                            "hospitalizadoDetalles",
+                            "cirugiaDetalles",
+                            "transfusionesDetalles",
+                            "traumatismosDetalles",
+                            "cardiopatiasDetalles",
+                            "respiratoriasDetalles",
+                            "epilepsiaDetalles",
+                            "marcapasosDetalles",
+                            "protesisValvularDetalles",
+                            "bifosfonatosDetalles",
+                            "oncologicoDetalles",
+                          ])}
+                          className="border-indigo-300 bg-white text-indigo-800 hover:bg-indigo-100"
+                        >
+                          Marcar todos como No
+                        </Button>
+                      </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <ThumbsSelector
@@ -2039,9 +2118,10 @@ export default function HistoriaClinicaNueva() {
                             id="presionArterial"
                             value={formData.presionArterial}
                             onChange={(e) => handleInputChange("presionArterial", e.target.value)}
-                            placeholder="120/80 mmHg"
+                            placeholder={formData.sexo === "femenino" ? "110/70 mmHg" : "120/80 mmHg"}
                             className="h-12"
                           />
+                          <p className="text-xs text-sky-700">Referencia: hombre 120/80 · mujer 110/70 mmHg</p>
                         </div>
 
                         <div className="space-y-2">
@@ -2053,6 +2133,7 @@ export default function HistoriaClinicaNueva() {
                             placeholder="lpm"
                             className="h-12"
                           />
+                          <p className="text-xs text-sky-700">Referencia: niño 80–140 · adulto 60–120 lpm</p>
                         </div>
 
                         <div className="space-y-2">
@@ -2064,6 +2145,7 @@ export default function HistoriaClinicaNueva() {
                             placeholder="rpm"
                             className="h-12"
                           />
+                          <p className="text-xs text-sky-700">Referencia general: 12–20 rpm</p>
                         </div>
 
                         <div className="space-y-2">
@@ -2075,6 +2157,7 @@ export default function HistoriaClinicaNueva() {
                             placeholder="°C"
                             className="h-12"
                           />
+                          <p className="text-xs text-sky-700">Referencia: 36.5–37.2 °C</p>
                         </div>
 
                         <div className="space-y-2">
@@ -2129,6 +2212,7 @@ export default function HistoriaClinicaNueva() {
                             className="h-12"
                             readOnly
                           />
+                          <p className="text-xs text-sky-700">Fórmula: peso (kg) ÷ estatura² (m)</p>
                         </div>
 
                         <div className="space-y-2">
@@ -2140,6 +2224,7 @@ export default function HistoriaClinicaNueva() {
                             placeholder="mg/dL"
                             className="h-12"
                           />
+                          <p className="text-xs text-sky-700">Referencia ideal: 80–100 mg/dL</p>
                         </div>
 
                         <div className="space-y-2">
@@ -3170,27 +3255,54 @@ export default function HistoriaClinicaNueva() {
                     <ThumbsSelector
                       label="10.2 ¿Lo han anestesiado en su boca alguna vez?"
                       value={formData.anestesiaBoca}
-                      onChange={(value) => handleInputChange("anestesiaBoca", value)}
-                      required
-                    />
-
-                    {/* 10.3 Complicación con anestesia */}
-                    <ThumbsSelector
-                      label="10.3 ¿Ha tenido alguna complicación con la anestesia dental?"
-                      value={formData.complicacionAnestesia}
                       onChange={(value) => {
-                        handleInputChange("complicacionAnestesia", value)
-                        if (value === "si") {
-                          alertSystem.addAlert(
-                            'condiciones_especiales',
-                            'alta',
-                            'Complicación previa con anestesia dental',
-                            'PRECAUCIÓN: Revisar historial antes de anestesiar'
-                          )
+                        handleInputChange("anestesiaBoca", value)
+                        if (value === "no") {
+                          handleInputChange("complicacionAnestesia", "no")
+                          handleInputChange("complicacionAnestesiaDetalles", "")
                         }
                       }}
                       required
                     />
+
+                    {formData.anestesiaBoca === "no" && (
+                      <div className="rounded-lg border-2 border-emerald-300 bg-emerald-50 p-4 text-sm font-semibold text-emerald-800">
+                        Sin antecedente de anestesia bucal: continuar con el protocolo clínico habitual.
+                      </div>
+                    )}
+
+                    {/* 10.3 Complicación con anestesia */}
+                    {formData.anestesiaBoca === "si" && (
+                      <div className="space-y-3">
+                        <ThumbsSelector
+                          label="10.3 ¿Presentó mareo, alergia u otra complicación con la anestesia dental?"
+                          value={formData.complicacionAnestesia}
+                          onChange={(value) => {
+                            handleInputChange("complicacionAnestesia", value)
+                            if (value === "no") {
+                              handleInputChange("complicacionAnestesiaDetalles", "")
+                            } else {
+                              alertSystem.addAlert(
+                                'condiciones_especiales',
+                                'alta',
+                                'Complicación previa con anestesia dental',
+                                'PRECAUCIÓN: Revisar historial antes de anestesiar'
+                              )
+                            }
+                          }}
+                          required
+                        />
+                        {formData.complicacionAnestesia === "si" && (
+                          <Textarea
+                            value={formData.complicacionAnestesiaDetalles}
+                            onChange={(e) => handleInputChange("complicacionAnestesiaDetalles", e.target.value)}
+                            placeholder="Describa el mareo, alergia, reacción u otra complicación"
+                            className="min-h-[90px]"
+                            required
+                          />
+                        )}
+                      </div>
+                    )}
 
                     {/* 10.4 Complicación durante visita dental */}
                     <ThumbsSelector
@@ -3767,6 +3879,30 @@ export default function HistoriaClinicaNueva() {
                       <p className="text-slate-500 mt-2 text-sm">Exámenes y registros complementarios</p>
                     </motion.div>
 
+                    <div className="flex justify-end">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => markFieldsAsNo([
+                          "estudioRadiografia",
+                          "estudioModeloEstudio",
+                          "estudioFotografia",
+                          "estudioLaboratorio",
+                          "estudioOtro",
+                        ], [
+                          "estudioRadiografiaDetalles",
+                          "estudioModeloEstudioDetalles",
+                          "estudioFotografiaDetalles",
+                          "estudioLaboratorioDetalles",
+                          "estudioOtroDetalles",
+                        ])}
+                        className="border-slate-300 bg-white text-slate-700 hover:bg-slate-100"
+                      >
+                        Marcar todos como No
+                      </Button>
+                    </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
                         <ThumbsSelector
@@ -3861,6 +3997,71 @@ export default function HistoriaClinicaNueva() {
                             className="min-h-[100px]"
                           />
                         )}
+                      </div>
+                    </div>
+
+                    <div className="space-y-5 rounded-2xl border-2 border-cyan-300 bg-gradient-to-br from-cyan-50 to-teal-50 p-4 sm:p-6">
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-[0.18em] text-cyan-700">Registro posterior a estudios auxiliares</p>
+                        <h3 className="mt-1 text-xl font-extrabold text-cyan-950">Segundo odontograma — diagnóstico y plan de tratamiento</h3>
+                        <p className="mt-1 text-sm text-cyan-800">Este odontograma es independiente del capturado en Historia Clínica Dental.</p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="diagnosticoPrimario" className="text-base font-semibold">Diagnóstico primario</Label>
+                        <Textarea
+                          id="diagnosticoPrimario"
+                          value={formData.diagnosticoPrimario}
+                          onChange={(e) => {
+                            handleInputChange("diagnosticoPrimario", e.target.value)
+                            localStorage.setItem('odontogramaDiagnostico', e.target.value)
+                          }}
+                          placeholder="Registre el diagnóstico primario después de revisar los estudios auxiliares"
+                          className="min-h-[100px] bg-white"
+                        />
+                      </div>
+
+                      <Odontograma
+                        value={odontogramaFinalData}
+                        onChange={(data) => {
+                          setOdontogramaFinalData(data)
+                          localStorage.setItem('odontogramaFinalData', JSON.stringify(data))
+                          const { tratamiento, diagnostico } = generateTratamientoText(data)
+                          localStorage.setItem('odontogramaTratamiento', tratamiento)
+                          localStorage.setItem('odontogramaDiagnostico', formData.diagnosticoPrimario || diagnostico)
+
+                          const counts: Record<string, number> = {}
+                          Object.values(data.dientes).forEach((diente) => {
+                            diente.tratamientos.forEach((tratamientoDiente) => {
+                              if (tratamientoDiente) counts[tratamientoDiente] = (counts[tratamientoDiente] || 0) + 1
+                            })
+                          })
+                          const treatmentNames: Record<string, string> = {
+                            EXT: "EXTRACCIONES",
+                            END: "ENDODONCIA",
+                            RS: "RESINAS",
+                            CORONA: "CORONA",
+                            QX: "CIRUGÍA",
+                            LIMPIEZA: "LIMPIEZA DENTAL",
+                          }
+                          setPlanTratamiento((previousPlan) => ({
+                            ...previousPlan,
+                            items: previousPlan.items.map((item) => {
+                              const treatmentKey = Object.keys(treatmentNames).find((key) => treatmentNames[key] === item.descripcion)
+                              return treatmentKey ? { ...item, cantidad: counts[treatmentKey] || 0 } : item
+                            }),
+                          }))
+                        }}
+                        notasMedico={notasOdontogramaFinal}
+                        onNotasMedicoChange={(value) => {
+                          setNotasOdontogramaFinal(value)
+                          localStorage.setItem('notasOdontogramaFinal', value)
+                        }}
+                      />
+
+                      <div className="rounded-xl border border-cyan-200 bg-white/80 p-4">
+                        <p className="font-bold text-cyan-950">Plan de tratamiento y orden de servicio</p>
+                        <p className="mt-1 text-sm text-cyan-800">Las cantidades seleccionadas aquí actualizan la orden de servicio dental ya capturada en el odontograma anterior.</p>
                       </div>
                     </div>
                   </motion.div>
@@ -4000,20 +4201,41 @@ export default function HistoriaClinicaNueva() {
                             console.log('💾 Guardando Historia Clínica en Supabase...')
                             
                             // Guardar en Supabase
-                            const savedHistoria = await saveHistoriaClinica(formData)
+                            const savedHistoria = await saveHistoriaClinica(formData, {
+                              odontogramaData,
+                              odontogramaFinalData,
+                              notasMedico,
+                              notasOdontogramaFinal,
+                              planTratamiento,
+                            })
                             
                             if (savedHistoria) {
                               console.log('✅ Historia Clínica guardada en Supabase:', savedHistoria.id)
+
+                              const historiaPersistida = savedHistoria.datos_completos?.historiaClinica || formData
+                              const expedienteCompleto = {
+                                ...historiaPersistida,
+                                odontogramaData,
+                                odontogramaFinalData,
+                                notasMedico,
+                                notasOdontogramaFinal,
+                                planTratamiento,
+                              }
                               
                               // Guardar en patientDataStore para el contrato y consentimiento
-                              patientDataStore.setHistoriaClinica(formData, savedHistoria.id)
+                              patientDataStore.setHistoriaClinica(expedienteCompleto, savedHistoria.id)
                               
                               // También guardar en localStorage como respaldo
-                              localStorage.setItem('historiaClinicaData', JSON.stringify(formData))
+                              localStorage.setItem('historiaClinicaData', JSON.stringify(expedienteCompleto))
                               localStorage.setItem('historiaClinicaId', savedHistoria.id)
                               localStorage.setItem('tipoPaciente', formData.tipoPaciente)
                               localStorage.setItem('planTratamiento', JSON.stringify(planTratamiento))
                               localStorage.setItem('notasMedico', notasMedico)
+                              localStorage.setItem('odontogramaFinalData', JSON.stringify(odontogramaFinalData))
+                              localStorage.setItem('notasOdontogramaFinal', notasOdontogramaFinal)
+                              localStorage.removeItem('historiaClinicaDraft')
+                              localStorage.removeItem('historiaClinicaNipVerified')
+                              localStorage.removeItem('historiaClinicaNipValue')
                               
                               // Redirigir según el tipo de paciente
                               switch (formData.tipoPaciente) {

@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Landmark, User, CreditCard, FileText, CheckCircle2 } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { patientDataStore } from "@/lib/patient-data-store"
+import { updateHistoriaClinicaSection } from "@/lib/supabase-helpers"
 
 export default function FinanciamientoBancario() {
   const router = useRouter()
@@ -32,7 +34,18 @@ export default function FinanciamientoBancario() {
       return
     }
 
-    // Guardar en localStorage
+    const historiaClinicaId = patientDataStore.getHistoriaClinicaId()
+    if (!historiaClinicaId) {
+      alert('No se encontró la historia clínica asociada. Regresa al formulario clínico e inténtalo nuevamente.')
+      return
+    }
+
+    const savedSection = await updateHistoriaClinicaSection(historiaClinicaId, 'financiamientoBancario', formData)
+    if (!savedSection) {
+      alert('No se pudo guardar la solicitud de financiamiento en el CRM.')
+      return
+    }
+
     localStorage.setItem('financiamientoBancario', JSON.stringify(formData))
     
     setEnviado(true)

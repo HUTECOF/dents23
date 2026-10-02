@@ -7,6 +7,8 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Download, CheckCircle2 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import { patientDataStore } from "@/lib/patient-data-store"
+import { updateHistoriaClinicaSection } from "@/lib/supabase-helpers"
 
 const DOCTORES = [
   "DR. ERICK MANCILLA",
@@ -129,6 +131,18 @@ export default function ContratoBancarioPage() {
     }
     setIsExporting(true)
     try {
+      const historiaClinicaId = patientDataStore.getHistoriaClinicaId()
+      if (!historiaClinicaId) {
+        alert("No se encontró la historia clínica asociada. Regresa al formulario clínico e inténtalo nuevamente.")
+        return
+      }
+
+      const savedSection = await updateHistoriaClinicaSection(historiaClinicaId, "contratoBancario", form)
+      if (!savedSection) {
+        alert("No se pudo guardar el contrato bancario completo en el CRM.")
+        return
+      }
+
       const { default: jsPDF } = await import("jspdf")
       const { default: html2canvas } = await import("html2canvas")
       const el = printRef.current

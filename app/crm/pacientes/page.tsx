@@ -38,6 +38,7 @@ import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { ProgresoProspecto } from "@/components/progreso-prospecto"
 import { isAuthenticated, getAuthenticatedUser, logout } from "@/lib/auth-helpers"
+import { ExpedienteCompleto } from "@/components/expediente-completo"
 
 export default function PacientesPage() {
   const router = useRouter()
@@ -697,7 +698,7 @@ export default function PacientesPage() {
 
       {/* Dialog: Ver Detalles */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-5xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Detalles del {selectedView === 'pacientes' ? 'Paciente' : 'Prospecto'}</DialogTitle>
             <DialogDescription>Información completa</DialogDescription>
@@ -760,6 +761,13 @@ export default function PacientesPage() {
                 <div>
                   <Label className="text-xs text-muted-foreground">Notas</Label>
                   <p className="text-sm mt-1">{selectedPaciente.notas}</p>
+                </div>
+              )}
+
+              {selectedPaciente.datos_completos && (
+                <div className="space-y-2 border-t pt-4">
+                  <Label className="text-base font-semibold">Expediente completo capturado</Label>
+                  <ExpedienteCompleto data={selectedPaciente.datos_completos} />
                 </div>
               )}
             </div>
