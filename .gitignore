@@ -23,6 +23,7 @@ yarn-error.log*
 .env*
 /scripts/*.local.sql
 /scripts/*.sql.example
+.crm-passwords.local.txt
 
 # vercel
 .vercel

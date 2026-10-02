@@ -128,17 +128,20 @@ export default function CRMLoginPage() {
               {/* Contraseña */}
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-base font-semibold text-gray-700">
-                  Contraseña segura del CRM
+                  Contraseña del CRM
                 </Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    minLength={12}
+                    inputMode="numeric"
+                    minLength={8}
+                    maxLength={8}
+                    pattern="[0-9]{8}"
                     value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    placeholder="Contraseña de al menos 12 caracteres"
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value.replace(/\D/g, "") })}
+                    placeholder="Contraseña de 8 dígitos"
                     className="pl-10 pr-10 h-12 text-base border-2 focus:border-teal-500"
                     required
                     autoComplete="current-password"
@@ -160,7 +163,7 @@ export default function CRMLoginPage() {
               {/* Botón de Login */}
               <Button
                 type="submit"
-                disabled={loading || !formData.doctorSlug || formData.password.length < 12}
+                disabled={loading || !formData.doctorSlug || !/^\d{8}$/.test(formData.password)}
                 className="w-full h-12 text-base font-semibold bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 disabled:opacity-50"
               >
                 {loading ? (
@@ -176,7 +179,7 @@ export default function CRMLoginPage() {
               {/* Info adicional */}
               <div className="text-center pt-4">
                 <p className="text-xs text-gray-500">
-                  Use su contraseña segura del CRM. El NIP para asignar expedientes es distinto.
+                  Use su contraseña numérica de 8 dígitos. El NIP para asignar expedientes es distinto.
                 </p>
               </div>
             </form>
